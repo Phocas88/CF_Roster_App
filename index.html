@@ -325,10 +325,28 @@ function computeAll(list){
    3. STORAGE — localStorage with an in-memory fallback
    ============================================================ */
 var KEY = "cf_roster_v1";
-var memory = null, storageOK = true;
-try{
-  localStorage.setItem("__t","1"); localStorage.removeItem("__t");
-}catch(e){ storageOK = false; }
+var memory = null, storageOK = false, storageProblem = "blocked", dirty = false;
+
+/* Probe with a payload the size of a real roster, and read it back.
+   A 1-byte test passes in sandboxes that then reject anything useful. */
+function probeStorage(){
+  var t = "__cf_probe__", pad = new Array(2049).join("x");   // ~2 KB
+  try{
+    if(typeof localStorage === "undefined" || !localStorage){ storageProblem = "blocked"; return false; }
+    localStorage.setItem(t, pad);
+    var ok = localStorage.getItem(t) === pad;
+    localStorage.removeItem(t);
+    if(!ok){ storageProblem = "blocked"; return false; }
+    return true;
+  }catch(e){
+    var hasData = false;
+    try{ hasData = localStorage.length > 0; }catch(e2){}
+    storageProblem = (e && e.name === "QuotaExceededError" && hasData) ? "full" : "blocked";
+    try{ localStorage.removeItem(t); }catch(e3){}
+    return false;
+  }
+}
+storageOK = probeStorage();
 
 function readStore(){
   if(!storageOK) return memory;
@@ -336,19 +354,35 @@ function readStore(){
   catch(e){ return null; }
 }
 function writeStore(list){
-  if(!storageOK){ memory = list; return; }
-  try{ localStorage.setItem(KEY, JSON.stringify(list)); }
-  catch(e){ storageOK = false; memory = list; showStorageWarning(true); }
+  if(storageOK){
+    try{ localStorage.setItem(KEY, JSON.stringify(list)); memory = null; return true; }
+    catch(e){ storageOK = false; storageProblem = "full"; }
+  }
+  memory = list;
+  renderStorageBanner();
+  return false;
 }
-function showStorageWarning(failed){
+
+function renderStorageBanner(){
   var el = document.getElementById("storagewarn");
+  if(!el) return;
+  if(storageOK){ el.style.display = "none"; return; }
   el.style.display = "block";
-  el.innerHTML = failed
-    ? "<b>Storage is full or blocked.</b> Changes are held in this tab only. Download a backup now before closing."
-    : "<b>This preview can't save to the browser.</b> The roster works, but it resets when you close the tab. "+
-      "Download this page and open the file from your own computer to keep changes.";
+  el.innerHTML = (storageProblem === "full"
+    ? "<b>This browser is out of storage space.</b> The roster still works, but changes won't survive a refresh. " +
+      "Clear some site data, or keep working and save a backup."
+    : "<b>This browser won't let the page save.</b> Everything works, but the roster resets when the tab closes. " +
+      "That's normal in a preview pane, a private window, or when the file is opened from inside a zip &mdash; " +
+      "save this file to your computer and open it directly to keep changes."
+  ) + ' <button class="btn small" id="bannerBackup" style="margin-left:8px">Download backup</button>';
+  var b = document.getElementById("bannerBackup");
+  if(b) b.addEventListener("click", downloadBackup);
 }
-if(!storageOK) showStorageWarning(false);
+renderStorageBanner();
+
+window.addEventListener("beforeunload", function(e){
+  if(!storageOK && dirty){ e.preventDefault(); e.returnValue = ""; }
+});
 
 var SEED = [{"id":1,"first":"Albert","last":"Davis","position":"Receiver","status":"Permanent","shift":1},{"id":2,"first":"Alfred","last":"Payton","position":"Picker","status":"Permanent","shift":1},{"id":3,"first":"Amari","last":"Robinson","position":"Packer","status":"Lee Group","shift":1},{"id":4,"first":"Angilita","last":"Lee","position":"Packer","status":"Integrity","shift":1},{"id":5,"first":"Ant","last":"Cherry","position":"Picker","status":"Permanent","shift":1},{"id":6,"first":"Antwn","last":"Ray","position":"Packer","status":"Integrity","shift":1},{"id":7,"first":"Armando","last":"Delacruz","position":"Turret Operator","status":"Permanent","shift":1},{"id":8,"first":"Armane","last":"Brooks","position":"Picker","status":"Integrity","shift":1},{"id":9,"first":"Arrid","last":"Tillery","position":"Picker","status":"Integrity","shift":1},{"id":10,"first":"Betty","last":"Whitby","position":"Key Account Packer","status":"Permanent","shift":1},{"id":11,"first":"Bobby","last":"Wahsington","position":"Packer","status":"Lee Group","shift":1},{"id":12,"first":"Brandon","last":"Parson","position":"Inventory","status":"PSS","shift":1},{"id":13,"first":"Brian","last":"Christian","position":"Picker","status":"PSS","shift":1},{"id":14,"first":"Calvin","last":"Crittle","position":"Picker","status":"Integrity","shift":1},{"id":15,"first":"Cayia","last":"Williams","position":"Packer","status":"Integrity","shift":1},{"id":16,"first":"Charlse","last":"Murrell","position":"Picker","status":"Integrity","shift":1},{"id":17,"first":"Chris","last":"Boswell","position":"Inventory","status":"PSS","shift":1},{"id":18,"first":"Clifton","last":"Artis","position":"Picker","status":"PSS","shift":1},{"id":19,"first":"Colonious","last":"Gwaltney","position":"Picker","status":"PSS","shift":1},{"id":20,"first":"Curtis","last":"Davis","position":"Picker","status":"PSS","shift":1},{"id":21,"first":"Daquan","last":"Royal","position":"Inventory","status":"Permanent","shift":1},{"id":22,"first":"Darlene","last":"Alexander","position":"Packer","status":"Permanent","shift":1},{"id":23,"first":"Darrian","last":"Tillman","position":"Packer","status":"Lee Group","shift":1},{"id":24,"first":"David","last":"Alston","position":"Picker","status":"Permanent","shift":1},{"id":25,"first":"Deandre","last":"Langford","position":"Picker","status":"PSS","shift":1},{"id":26,"first":"Del","last":"Brown","position":"Packer","status":"Permanent","shift":1},{"id":27,"first":"Dennis","last":"Delacruz","position":"Key Account Packer","status":"Permanent","shift":1},{"id":28,"first":"Donavan","last":"Edwards","position":"Picker","status":"Lee Group","shift":1},{"id":29,"first":"Elyas","last":"Nesari","position":"Packer","status":"PSS","shift":1},{"id":30,"first":"Emmette","last":"Kelley","position":"Picker","status":"PSS","shift":1},{"id":31,"first":"Enrique","last":"Baysa","position":"Picker","status":"PSS","shift":1},{"id":32,"first":"Evan","last":"Moore","position":"Picker","status":"Permanent","shift":1},{"id":33,"first":"Freshta","last":"Nazari","position":"Packer","status":"PSS","shift":1},{"id":34,"first":"Hamidullah","last":"Noori","position":"Packer","status":"PSS","shift":1},{"id":35,"first":"Helen","last":"Meredith-Boyd","position":"Clerical","status":"Permanent","shift":1},{"id":36,"first":"Ian","last":"McAden","position":"Inventory","status":"Permanent","shift":1},{"id":37,"first":"Jaay","last":"Jordan","position":"Packer","status":"Permanent","shift":1},{"id":38,"first":"Jadah","last":"Pugh","position":"Packer","status":"Permanent","shift":1},{"id":39,"first":"Jalon","last":"Owens","position":"Packer","status":"Lee Group","shift":1},{"id":40,"first":"Janine","last":"Mena","position":"Packer","status":"Permanent","shift":1},{"id":41,"first":"Jason","last":"Linwood","position":"Picker","status":"PSS","shift":1},{"id":42,"first":"Jeramie","last":"Cary","position":"Picker","status":"Permanent","shift":1},{"id":43,"first":"Jesusa","last":"Valdez","position":"Key Account Packer","status":"Permanent","shift":1},{"id":44,"first":"John","last":"Royal","position":"Packer","status":"PSS","shift":1},{"id":45,"first":"Joselito","last":"Robles","position":"Picker","status":"Permanent","shift":1},{"id":46,"first":"Kevin","last":"Hill","position":"Picker","status":"PSS","shift":1},{"id":47,"first":"Kris","last":"Greenhow","position":"Picker","status":"Lee Group","shift":1},{"id":48,"first":"Laquin","last":"Cutchin","position":"Turret Operator","status":"Lee Group","shift":1},{"id":49,"first":"Latisha","last":"Green","position":"Picker","status":"Integrity","shift":1},{"id":50,"first":"Latrell","last":"Harris","position":"Picker","status":"Integrity","shift":1},{"id":51,"first":"Leslie","last":"Brown","position":"Receiver","status":"Permanent","shift":1},{"id":52,"first":"Luella","last":"Beulah","position":"Housekeeping","status":"Permanent","shift":1},{"id":53,"first":"Luis","last":"Ocasiorodriguez","position":"Receiver","status":"Lee Group","shift":1},{"id":54,"first":"Malik","last":"Allmond","position":"Packer","status":"Lee Group","shift":1},{"id":55,"first":"Marco","last":"Gonzalez","position":"Turret Operator","status":"PSS","shift":1},{"id":56,"first":"Maribel","last":"Delacruz","position":"Packer","status":"Permanent","shift":1},{"id":57,"first":"Maricel","last":"Delacruz","position":"Packer","status":"Permanent","shift":1},{"id":58,"first":"Marquis","last":"Walker","position":"Picker","status":"PSS","shift":1},{"id":59,"first":"Michael","last":"Simon","position":"Picker","status":"PSS","shift":1},{"id":60,"first":"Mike","last":"Dargan","position":"Receiver","status":"Permanent","shift":1},{"id":61,"first":"Nargis","last":"Noori","position":"Packer","status":"PSS","shift":1},{"id":62,"first":"Noah","last":"Lewis","position":"Picker","status":"Permanent","shift":1},{"id":63,"first":"Omari","last":"Cary","position":"Packer","status":"Permanent","shift":1},{"id":64,"first":"Omarsharee","last":"Holley","position":"Picker","status":"Lee Group","shift":1},{"id":65,"first":"Ramon","last":"Joyner","position":"Picker","status":"Permanent","shift":1},{"id":66,"first":"Ramon","last":"Knightnor","position":"Picker","status":"Lee Group","shift":1},{"id":67,"first":"Raymond","last":"Alston","position":"Picker","status":"Permanent","shift":1},{"id":68,"first":"Raymond","last":"Bryant","position":"Turret Operator","status":"Lee Group","shift":1},{"id":69,"first":"Rogelio","last":"Valdez","position":"Shipping","status":"Permanent","shift":1},{"id":70,"first":"Ruth","last":"Yanagisawa","position":"Key Account Packer","status":"Permanent","shift":1},{"id":71,"first":"Shaniya","last":"Long","position":"Packer","status":"Integrity","shift":1},{"id":72,"first":"Stephen","last":"Hall","position":"Packer","status":"Permanent","shift":1},{"id":73,"first":"Steven","last":"Folk","position":"Packer","status":"Permanent","shift":1},{"id":74,"first":"Tamana","last":"Nesari","position":"Packer","status":"PSS","shift":1},{"id":75,"first":"Terrell","last":"Wiley","position":"Packer","status":"PSS","shift":1},{"id":76,"first":"Timothy","last":"Anderson","position":"Picker","status":"Integrity","shift":1},{"id":77,"first":"William","last":"Cooke","position":"Picker","status":"Permanent","shift":1},{"id":78,"first":"William","last":"Norton","position":"Packer","status":"Permanent","shift":1},{"id":79,"first":"William","last":"Sellers","position":"Inventory","status":"Permanent","shift":1},{"id":80,"first":"Yoeli","last":"Reimundezpedre","position":"Packer","status":"PSS","shift":1},{"id":81,"first":"Zarina","last":"Muradi","position":"Packer","status":"PSS","shift":1},{"id":82,"first":"Zeba","last":"Noori","position":"Packer","status":"PSS","shift":1},{"id":83,"first":"Zillur","last":"Rahman","position":"Packer","status":"PSS","shift":1},{"id":84,"first":"Zoe","last":"Harris","position":"Packer","status":"Permanent","shift":1},{"id":85,"first":"Abdul","last":"Moradi","position":"Packer","status":"PSS","shift":2},{"id":86,"first":"Amy","last":"Knight","position":"Packer","status":"Permanent","shift":2},{"id":87,"first":"Basel","last":"Zeytun","position":"Picker","status":"PSS","shift":2},{"id":88,"first":"Beulah","last":"Odon","position":"Picker","status":"Permanent","shift":2},{"id":89,"first":"Carlos","last":"Etrella-Perez","position":"Packer","status":"PSS","shift":2},{"id":90,"first":"Carolyn","last":"Bynum","position":"Packer","status":"Permanent","shift":2},{"id":91,"first":"Danilo","last":"Lagatuz","position":"Picker","status":"Permanent","shift":2},{"id":92,"first":"Deshawn","last":"Freeman","position":"Picker","status":"PSS","shift":2},{"id":93,"first":"Desmen","last":"Smith","position":"Packer","status":"Permanent","shift":2},{"id":94,"first":"Donald","last":"Thompson","position":"Packer","status":"Lee Group","shift":2},{"id":95,"first":"Frozan","last":"Nabawi","position":"Packer","status":"PSS","shift":2},{"id":96,"first":"Hamza","last":"Zayegh","position":"Picker","status":"PSS","shift":2},{"id":97,"first":"Jasia","last":"Brown","position":"Packer","status":"Permanent","shift":2},{"id":98,"first":"Jonathan","last":"Delacruz","position":"Picker","status":"Permanent","shift":2},{"id":99,"first":"Josephine","last":"Evans","position":"Packer","status":"Permanent","shift":2},{"id":100,"first":"Ke","last":"Payne","position":"Packer","status":"Permanent","shift":2},{"id":101,"first":"Kevin","last":"Roberts","position":"Picker","status":"Permanent","shift":2},{"id":102,"first":"Keyonna","last":"Robinson","position":"Packer","status":"Permanent","shift":2},{"id":103,"first":"Leander","last":"Williams","position":"Picker","status":"Lee Group","shift":2},{"id":104,"first":"Moe","last":"Burford","position":"Picker","status":"Permanent","shift":2},{"id":105,"first":"Monisa","last":"Nesari","position":"Packer","status":"PSS","shift":2},{"id":106,"first":"Mursal","last":"Oryakhail","position":"Packer","status":"PSS","shift":2},{"id":107,"first":"Nicholas","last":"Hadley","position":"Packer","status":"Lee Group","shift":2},{"id":108,"first":"Nijah","last":"Greenhow","position":"Packer","status":"PSS","shift":2},{"id":109,"first":"Rana","last":"Nikzad","position":"Packer","status":"PSS","shift":2},{"id":110,"first":"Randall","last":"Coy","position":"Picker","status":"Permanent","shift":2},{"id":111,"first":"Rena","last":"Chao","position":"Packer","status":"Permanent","shift":2},{"id":112,"first":"Rohullah","last":"Zemarwal","position":"Packer","status":"PSS","shift":2},{"id":113,"first":"Sara","last":"Farjam","position":"Packer","status":"PSS","shift":2},{"id":114,"first":"Spogmai","last":"Nikzad","position":"Packer","status":"PSS","shift":2},{"id":115,"first":"Timothy","last":"Perry","position":"Picker","status":"Permanent","shift":2},{"id":116,"first":"Trevon","last":"Croker","position":"Picker","status":"Permanent","shift":2},{"id":117,"first":"Wilfredo","last":"Delacruz","position":"Picker","status":"Permanent","shift":2}];
 
@@ -361,7 +395,7 @@ var editingId = null;
 function nextId(){
   var m = 0; people.forEach(function(p){ if(+p.id > m) m = +p.id; }); return m + 1;
 }
-function persist(){ writeStore(people); refresh(); }
+function persist(){ writeStore(people); if(!storageOK) dirty = true; refresh(); }
 
 /* ============================================================
    4. RENDER
@@ -647,13 +681,15 @@ document.getElementById("importFile").addEventListener("change", function(e){
   rd.readAsText(f); e.target.value = "";
 });
 
-document.getElementById("backupBtn").addEventListener("click", function(){
+function downloadBackup(){
   var stamp = new Date().toISOString().slice(0,10);
   download("CF_Roster_backup_" + stamp + ".json",
     JSON.stringify({app:"cf-roster", version:1, saved:new Date().toISOString(), people:people}, null, 1),
     "application/json");
+  dirty = false;
   toast("Backup downloaded — " + people.length + " people.");
-});
+}
+document.getElementById("backupBtn").addEventListener("click", downloadBackup);
 
 document.getElementById("restoreBtn").addEventListener("click", function(){
   document.getElementById("restoreFile").click();
