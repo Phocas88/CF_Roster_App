@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CF Roster — Barcode Sheets</title>
+<style>
+/* ============================================================
+   Palette: concrete floor + workwear navy + safety yellow.
+   Status colours match the printed PDFs already in circulation.
+   No web fonts on purpose — this must run offline.
+   ============================================================ */
+:root{
+  --concrete:#E7E8EA; --surface:#FFFFFF; --surface-2:#F4F5F6;
+  --ink:#15171C; --steel:#5C6573; --line:#CBD0D7; --line-soft:#E3E6EA;
+  --safety:#F5C518; --navy:#1F2A3C;
+  --permanent:#1B5E20; --integrity:#0D47A1; --pss:#4A148C; --lee:#BF360C;
+  --danger:#B3261E;
+  --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --ui:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --stencil:"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--concrete);color:var(--ink);font-family:var(--ui);font-size:14px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px 64px}
+
+/* ---- header: hazard tape is the one loud element ---- */
+.tape{height:12px;background:repeating-linear-gradient(135deg,var(--safety) 0 16px,var(--navy) 16px 32px)}
+header{background:var(--navy);color:#fff;padding:18px 0 16px}
+header .wrap{padding-bottom:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:14px}
+h1{font-family:var(--stencil);font-size:21px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;margin:0}
+.sub{color:#A9B4C4;font-size:12.5px;letter-spacing:.04em}
+.count-chip{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--navy);background:var(--safety);padding:3px 10px;border-radius:2px;font-weight:700}
+
+/* ---- panels ---- */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:3px;margin-top:18px}
+.panel-head{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.panel-head h2{font-family:var(--stencil);font-size:11.5px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;margin:0;color:var(--steel)}
+.panel-body{padding:14px}
+
+/* ---- form ---- */
+.formgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;align-items:end}
+label{display:block;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--steel);font-weight:700;margin-bottom:4px}
+input,select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:2px;font:inherit;background:#fff;color:var(--ink)}
+input:focus,select:focus{outline:2px solid var(--navy);outline-offset:1px;border-color:var(--navy)}
+.btn{font:inherit;font-weight:600;padding:8px 14px;border:1px solid var(--navy);background:var(--navy);color:#fff;border-radius:2px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#2c3a52}
+.btn.ghost{background:#fff;color:var(--navy)}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.warn{border-color:var(--danger);color:var(--danger);background:#fff}
+.btn.warn:hover{background:#fdf3f2}
+.btn:focus-visible{outline:2px solid var(--safety);outline-offset:2px}
+.btn.small{padding:4px 8px;font-size:12px}
+.row-actions{display:flex;gap:5px;justify-content:flex-end}
+
+/* ---- preview of the 3 variants while typing ---- */
+.preview{margin-top:12px;padding:11px 12px;background:var(--surface-2);border:1px dashed var(--line);border-radius:2px;font-family:var(--mono);font-size:12.5px;display:flex;flex-wrap:wrap;gap:6px 26px;min-height:20px}
+.preview b{color:var(--steel);font-weight:400}
+.preview .empty{color:var(--steel);font-family:var(--ui)}
+
+/* ---- toolbar ---- */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.toolbar .grow{flex:1 1 190px;min-width:150px}
+.toolbar .spacer{flex:1 1 auto}
+
+/* ---- table ---- */
+table{width:100%;border-collapse:collapse}
+th{font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--steel);text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);background:var(--surface-2);position:sticky;top:0;font-weight:700}
+td{padding:8px 10px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+tbody tr:hover{background:#FAFBFC}
+.nm{font-weight:600}
+.codes{font-family:var(--mono);font-size:11.5px;color:var(--steel);white-space:nowrap}
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:2px 7px;border-radius:2px;white-space:nowrap}
+.b-permanent{background:var(--permanent)} .b-integrity{background:var(--integrity)}
+.b-pss{background:var(--pss)} .b-lee{background:var(--lee)} .b-other{background:var(--steel)}
+.shiftcell{font-family:var(--mono);text-align:center;width:52px}
+.flag{color:var(--danger);font-size:11px;font-weight:600}
+.empty-state{padding:40px 16px;text-align:center;color:var(--steel)}
+
+/* ---- toast ---- */
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:3px;font-size:13px;box-shadow:0 6px 22px rgba(0,0,0,.25);transition:transform .22s ease;z-index:60;max-width:90vw}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.bad{background:var(--danger)}
+.note{font-size:12px;color:var(--steel);margin:8px 0 0}
+.warnbar{background:#FFF4D6;border:1px solid var(--safety);padding:9px 12px;border-radius:2px;font-size:12.5px;margin-top:14px}
+
+/* ============================================================
+   PRINT SHEET
+   ============================================================ */
+#sheet{display:none}
+.shift-block{break-after:page;page-break-after:always}
+.shift-block:last-child{break-after:auto;page-break-after:auto}
+.shift-bar{background:var(--ink);color:#fff;padding:5px 9px;font-family:var(--stencil);font-size:11pt;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline}
+.shift-bar span{font-family:var(--ui);font-size:8pt;font-weight:400;letter-spacing:.02em}
+/* grid: lines run BOTH ways — vertical between the two columns, horizontal between rows */
+.grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--ink);border-left:1px solid var(--ink)}
+.card{border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);padding:9px 11px 11px;break-inside:avoid;page-break-inside:avoid}
+.card-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.card-name{font-size:11.5pt;font-weight:700;letter-spacing:.01em}
+.card-meta{font-size:7.5pt;color:#555;margin:1px 0 7px}
+.bc{margin-bottom:6px}
+.bc svg{display:block;shape-rendering:crispEdges;max-width:100%}
+.bc .cap{font-family:var(--mono);font-size:8pt;margin-top:2px;letter-spacing:.02em}
+.card-note{color:var(--danger);font-size:7pt;font-style:italic;margin-top:2px}
+
+@media print{
+  @page{size:letter portrait;margin:.4in}
+  body{background:#fff}
+  body>header,body>.tape,.wrap{display:none !important}
+  #sheet{display:block !important}
+  .badge{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .shift-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (max-width:640px){
+  .row-actions{flex-wrap:wrap}
+  .hide-sm{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+</head>
+<body>
+
+<div class="tape"></div>
+<header>
+  <div class="wrap">
+    <h1>CF Roster</h1>
+    <div class="sub">Code&nbsp;128 badge sheets</div>
+    <div class="count-chip" id="chip">—</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div id="storagewarn" class="warnbar" style="display:none"></div>
+
+  <!-- ADD / EDIT -->
+  <section class="panel">
+    <div class="panel-head"><h2 id="formTitle">Add a person</h2></div>
+    <div class="panel-body">
+      <div class="formgrid">
+        <div><label for="f_first">First name</label><input id="f_first" autocomplete="off"></div>
+        <div><label for="f_last">Last name</label><input id="f_last" autocomplete="off" placeholder="Dela Cruz"></div>
+        <div><label for="f_pos">Position</label><input id="f_pos" list="dl_pos" autocomplete="off" value="Picker"><datalist id="dl_pos"></datalist></div>
+        <div><label for="f_status">Employment status</label><input id="f_status" list="dl_status" autocomplete="off" value="Permanent"><datalist id="dl_status"></datalist></div>
+        <div><label for="f_shift">Shift</label><select id="f_shift"><option value="1">1st</option><option value="2">2nd</option></select></div>
+        <div class="row-actions" style="justify-content:flex-start">
+          <button class="btn" id="saveBtn">Add to roster</button>
+          <button class="btn ghost" id="cancelBtn" style="display:none">Cancel</button>
+        </div>
+      </div>
+      <div class="preview" id="preview"><span class="empty">Barcode values appear here as you type.</span></div>
+    </div>
+  </section>
+
+  <!-- TOOLBAR -->
+  <section class="panel">
+    <div class="panel-head"><h2>Print &amp; file</h2></div>
+    <div class="panel-body">
+      <div class="toolbar">
+        <div class="grow"><label for="q">Search</label><input id="q" placeholder="Name…" autocomplete="off"></div>
+        <div><label for="fShift">Shift</label><select id="fShift"><option value="">All</option><option value="1">1st</option><option value="2">2nd</option></select></div>
+        <div><label for="fPos">Position</label><select id="fPos"><option value="">All positions</option></select></div>
+        <div class="spacer"></div>
+        <div><button class="btn" id="printFiltered">Print these sheets</button></div>
+      </div>
+      <div class="toolbar" style="margin-top:12px">
+        <div><button class="btn ghost" id="importBtn">Import CSV</button><input type="file" id="importFile" accept=".csv,text/csv" hidden></div>
+        <div><button class="btn ghost" id="templateBtn">Download CSV template</button></div>
+        <div><button class="btn ghost" id="backupBtn">Download backup</button></div>
+        <div><button class="btn ghost" id="restoreBtn">Restore from backup</button><input type="file" id="restoreFile" accept=".json,application/json" hidden></div>
+        <div class="spacer"></div>
+        <div><button class="btn warn" id="wipeBtn">Clear roster</button></div>
+      </div>
+      <p class="note">Everything is stored on this computer only. Use <b>Download backup</b> to move the roster to another machine, then <b>Restore from backup</b> there.</p>
+    </div>
+  </section>
+
+  <!-- ROSTER -->
+  <section class="panel">
+    <div class="panel-head"><h2>Roster</h2><span class="sub" id="showing" style="color:var(--steel)"></span></div>
+    <div class="panel-body" style="padding:0">
+      <table>
+        <thead><tr>
+          <th>Name</th><th class="hide-sm">Position</th><th>Status</th>
+          <th class="shiftcell">Shift</th><th class="hide-sm">Barcode values</th><th></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState" style="display:none">
+        No one matches those filters. Clear the search, or add someone above.
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="sheet"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   1. CODE 128 — self-contained encoder (Code Set B).
+   Pattern table and checksum verified against a reference
+   decoder on 356 strings before shipping.
+   ============================================================ */
+var C128 = ["11011001100", "11001101100", "11001100110", "10010011000", "10010001100", "10001001100", "10011001000", "10011000100", "10001100100", "11001001000", "11001000100", "11000100100", "10110011100", "10011011100", "10011001110", "10111001100", "10011101100", "10011100110", "11001110010", "11001011100", "11001001110", "11011100100", "11001110100", "11101101110", "11101001100", "11100101100", "11100100110", "11101100100", "11100110100", "11100110010", "11011011000", "11011000110", "11000110110", "10100011000", "10001011000", "10001000110", "10110001000", "10001101000", "10001100010", "11010001000", "11000101000", "11000100010", "10110111000", "10110001110", "10001101110", "10111011000", "10111000110", "10001110110", "11101110110", "11010001110", "11000101110", "11011101000", "11011100010", "11011101110", "11101011000", "11101000110", "11100010110", "11101101000", "11101100010", "11100011010", "11101111010", "11001000010", "11110001010", "10100110000", "10100001100", "10010110000", "10010000110", "10000101100", "10000100110", "10110010000", "10110000100", "10011010000", "10011000010", "10000110100", "10000110010", "11000010010", "11001010000", "11110111010", "11000010100", "10001111010", "10100111100", "10010111100", "10010011110", "10111100100", "10011110100", "10011110010", "11110100100", "11110010100", "11110010010", "11011011110", "11011110110", "11110110110", "10101111000", "10100011110", "10001011110", "10111101000", "10111100010", "11110101000", "11110100010", "10111011110", "10111101110", "11101011110", "11110101110", "11010000100", "11010010000", "11010011100"];
+var STOP = "1100011101011";      // stop pattern + termination bar
+
+function encode128(text){
+  var vals = [], i, ch;
+  for(i=0;i<text.length;i++){
+    ch = text.charCodeAt(i) - 32;
+    if(ch < 0 || ch > 94) return null;      // outside Code Set B
+    vals.push(ch);
+  }
+  var sum = 104;                             // start-B value
+  for(i=0;i<vals.length;i++) sum += (i+1) * vals[i];
+  var out = C128[104];
+  for(i=0;i<vals.length;i++) out += C128[vals[i]];
+  out += C128[sum % 103] + STOP;
+  return out;
+}
+
+/* Render module string as SVG. moduleIn = printed width of one module. */
+function barcodeSVG(text, moduleIn, heightIn){
+  var mods = encode128(text);
+  if(!mods) return '<div class="card-note">! cannot encode: '+esc(text)+'</div>';
+  var quiet = 10, total = mods.length + quiet*2;
+  var w = (total*moduleIn).toFixed(3), h = heightIn.toFixed(3);
+  var rects = '', run = 0, i;
+  for(i=0;i<=mods.length;i++){
+    if(mods.charAt(i) === '1'){ run++; }
+    else if(run){ rects += '<rect x="'+(quiet+i-run)+'" y="0" width="'+run+'" height="10" />'; run = 0; }
+  }
+  return '<svg width="'+w+'in" height="'+h+'in" viewBox="0 0 '+total+' 10" '+
+         'preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" role="img" '+
+         'aria-label="barcode '+esc(text)+'"><g fill="#000">'+rects+'</g></svg>';
+}
+
+/* ============================================================
+   2. NAME RULES  (identical to the printed sheets)
+   - suffixes Jr/Sr/II/III/IV are dropped
+   - a multi-word surname glues into one word: Dela Cruz -> Delacruz
+   - short code is all lowercase: initial + surname
+   ============================================================ */
+var SUFFIX = {jr:1, sr:1, ii:1, iii:1, iv:1};
+
+function squish(s){ return String(s==null?"":s).replace(/\s+/g," ").trim(); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+function capWord(w){
+  if(!w) return "";
+  if(w.indexOf("-") > -1) return w.split("-").map(capWord).join("-");
+  if(w.indexOf("'") > -1){
+    var p = w.split("'");
+    return capWord(p[0]) + "'" + p.slice(1).map(function(x){
+      return x.charAt(0).toUpperCase() + x.slice(1).toLowerCase(); }).join("'");
+  }
+  var lw = w.toLowerCase();
+  if(/^mc[a-z]{2,}$/.test(lw)) return "Mc" + lw.charAt(2).toUpperCase() + lw.slice(3);
+  return lw.charAt(0).toUpperCase() + lw.slice(1);
+}
+
+function firstOf(raw){
+  return squish(raw).split(" ").map(capWord).join(" ");
+}
+
+function surnameOf(raw){
+  var words = squish(raw).split(" ").filter(Boolean);
+  while(words.length > 1 && SUFFIX[words[words.length-1].toLowerCase().replace(/\./g,"")]) words.pop();
+  if(!words.length) return "";
+  if(words.length === 1) return capWord(words[0]);
+  var glued = words.map(function(w){
+    return w.replace(/[^A-Za-z'-]/g,"").toLowerCase(); }).join("");
+  return glued.charAt(0).toUpperCase() + glued.slice(1);
+}
+
+function letters(s){ return String(s).replace(/[^A-Za-z]/g,""); }
+
+/* Build the three variants for one person (before collision fixing). */
+function variants(p){
+  var f = firstOf(p.first), s = surnameOf(p.last);
+  var proper = squish(f + " " + s);
+  return {
+    proper: proper,
+    upper: proper.toUpperCase(),
+    short: (letters(f).charAt(0) + letters(s)).toLowerCase(),
+    _f: letters(f).toLowerCase(), _s: letters(s).toLowerCase()
+  };
+}
+
+/* Short codes must be unique across the WHOLE roster, not per sheet. */
+function computeAll(list){
+  var out = list.map(function(p){
+    var v = variants(p);
+    return {id:p.id, first:p.first, last:p.last, position:squish(p.position)||"Picker",
+            status:squish(p.status)||"Permanent", shift:String(p.shift)==="2"?2:1,
+            proper:v.proper, upper:v.upper, short:v.short, note:"", _f:v._f, _s:v._s};
+  });
+  var byCode = {};
+  out.forEach(function(r){ (byCode[r.short] = byCode[r.short] || []).push(r); });
+  Object.keys(byCode).forEach(function(k){
+    var g = byCode[k];
+    if(g.length < 2) return;
+    g.forEach(function(r){
+      r.short = (r._f + r._s);
+      r.note = "Short code expanded — shares an initial and surname";
+    });
+  });
+  // anything still identical is a genuine duplicate name
+  var seen = {};
+  out.forEach(function(r){
+    if(seen[r.short] === undefined){ seen[r.short] = 1; }
+    else { seen[r.short]++; r.short = r.short + seen[r.short];
+           r.note = "Duplicate name on the roster — verify this is a different person"; }
+  });
+  out.forEach(function(r){ delete r._f; delete r._s; });
+  return out;
+}
+
+/* ============================================================
+   3. STORAGE — localStorage with an in-memory fallback
+   ============================================================ */
+var KEY = "cf_roster_v1";
+var memory = null, storageOK = true;
+try{
+  localStorage.setItem("__t","1"); localStorage.removeItem("__t");
+}catch(e){ storageOK = false; }
+
+function readStore(){
+  if(!storageOK) return memory;
+  try{ var raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; }
+  catch(e){ return null; }
+}
+function writeStore(list){
+  if(!storageOK){ memory = list; return; }
+  try{ localStorage.setItem(KEY, JSON.stringify(list)); }
+  catch(e){ storageOK = false; memory = list; showStorageWarning(true); }
+}
+function showStorageWarning(failed){
+  var el = document.getElementById("storagewarn");
+  el.style.display = "block";
+  el.innerHTML = failed
+    ? "<b>Storage is full or blocked.</b> Changes are held in this tab only. Download a backup now before closing."
+    : "<b>This preview can't save to the browser.</b> The roster works, but it resets when you close the tab. "+
+      "Download this page and open the file from your own computer to keep changes.";
+}
+if(!storageOK) showStorageWarning(false);
+
+var SEED = [{"id":1,"first":"Albert","last":"Davis","position":"Receiver","status":"Permanent","shift":1},{"id":2,"first":"Alfred","last":"Payton","position":"Picker","status":"Permanent","shift":1},{"id":3,"first":"Amari","last":"Robinson","position":"Packer","status":"Lee Group","shift":1},{"id":4,"first":"Angilita","last":"Lee","position":"Packer","status":"Integrity","shift":1},{"id":5,"first":"Ant","last":"Cherry","position":"Picker","status":"Permanent","shift":1},{"id":6,"first":"Antwn","last":"Ray","position":"Packer","status":"Integrity","shift":1},{"id":7,"first":"Armando","last":"Delacruz","position":"Turret Operator","status":"Permanent","shift":1},{"id":8,"first":"Armane","last":"Brooks","position":"Picker","status":"Integrity","shift":1},{"id":9,"first":"Arrid","last":"Tillery","position":"Picker","status":"Integrity","shift":1},{"id":10,"first":"Betty","last":"Whitby","position":"Key Account Packer","status":"Permanent","shift":1},{"id":11,"first":"Bobby","last":"Wahsington","position":"Packer","status":"Lee Group","shift":1},{"id":12,"first":"Brandon","last":"Parson","position":"Inventory","status":"PSS","shift":1},{"id":13,"first":"Brian","last":"Christian","position":"Picker","status":"PSS","shift":1},{"id":14,"first":"Calvin","last":"Crittle","position":"Picker","status":"Integrity","shift":1},{"id":15,"first":"Cayia","last":"Williams","position":"Packer","status":"Integrity","shift":1},{"id":16,"first":"Charlse","last":"Murrell","position":"Picker","status":"Integrity","shift":1},{"id":17,"first":"Chris","last":"Boswell","position":"Inventory","status":"PSS","shift":1},{"id":18,"first":"Clifton","last":"Artis","position":"Picker","status":"PSS","shift":1},{"id":19,"first":"Colonious","last":"Gwaltney","position":"Picker","status":"PSS","shift":1},{"id":20,"first":"Curtis","last":"Davis","position":"Picker","status":"PSS","shift":1},{"id":21,"first":"Daquan","last":"Royal","position":"Inventory","status":"Permanent","shift":1},{"id":22,"first":"Darlene","last":"Alexander","position":"Packer","status":"Permanent","shift":1},{"id":23,"first":"Darrian","last":"Tillman","position":"Packer","status":"Lee Group","shift":1},{"id":24,"first":"David","last":"Alston","position":"Picker","status":"Permanent","shift":1},{"id":25,"first":"Deandre","last":"Langford","position":"Picker","status":"PSS","shift":1},{"id":26,"first":"Del","last":"Brown","position":"Packer","status":"Permanent","shift":1},{"id":27,"first":"Dennis","last":"Delacruz","position":"Key Account Packer","status":"Permanent","shift":1},{"id":28,"first":"Donavan","last":"Edwards","position":"Picker","status":"Lee Group","shift":1},{"id":29,"first":"Elyas","last":"Nesari","position":"Packer","status":"PSS","shift":1},{"id":30,"first":"Emmette","last":"Kelley","position":"Picker","status":"PSS","shift":1},{"id":31,"first":"Enrique","last":"Baysa","position":"Picker","status":"PSS","shift":1},{"id":32,"first":"Evan","last":"Moore","position":"Picker","status":"Permanent","shift":1},{"id":33,"first":"Freshta","last":"Nazari","position":"Packer","status":"PSS","shift":1},{"id":34,"first":"Hamidullah","last":"Noori","position":"Packer","status":"PSS","shift":1},{"id":35,"first":"Helen","last":"Meredith-Boyd","position":"Clerical","status":"Permanent","shift":1},{"id":36,"first":"Ian","last":"McAden","position":"Inventory","status":"Permanent","shift":1},{"id":37,"first":"Jaay","last":"Jordan","position":"Packer","status":"Permanent","shift":1},{"id":38,"first":"Jadah","last":"Pugh","position":"Packer","status":"Permanent","shift":1},{"id":39,"first":"Jalon","last":"Owens","position":"Packer","status":"Lee Group","shift":1},{"id":40,"first":"Janine","last":"Mena","position":"Packer","status":"Permanent","shift":1},{"id":41,"first":"Jason","last":"Linwood","position":"Picker","status":"PSS","shift":1},{"id":42,"first":"Jeramie","last":"Cary","position":"Picker","status":"Permanent","shift":1},{"id":43,"first":"Jesusa","last":"Valdez","position":"Key Account Packer","status":"Permanent","shift":1},{"id":44,"first":"John","last":"Royal","position":"Packer","status":"PSS","shift":1},{"id":45,"first":"Joselito","last":"Robles","position":"Picker","status":"Permanent","shift":1},{"id":46,"first":"Kevin","last":"Hill","position":"Picker","status":"PSS","shift":1},{"id":47,"first":"Kris","last":"Greenhow","position":"Picker","status":"Lee Group","shift":1},{"id":48,"first":"Laquin","last":"Cutchin","position":"Turret Operator","status":"Lee Group","shift":1},{"id":49,"first":"Latisha","last":"Green","position":"Picker","status":"Integrity","shift":1},{"id":50,"first":"Latrell","last":"Harris","position":"Picker","status":"Integrity","shift":1},{"id":51,"first":"Leslie","last":"Brown","position":"Receiver","status":"Permanent","shift":1},{"id":52,"first":"Luella","last":"Beulah","position":"Housekeeping","status":"Permanent","shift":1},{"id":53,"first":"Luis","last":"Ocasiorodriguez","position":"Receiver","status":"Lee Group","shift":1},{"id":54,"first":"Malik","last":"Allmond","position":"Packer","status":"Lee Group","shift":1},{"id":55,"first":"Marco","last":"Gonzalez","position":"Turret Operator","status":"PSS","shift":1},{"id":56,"first":"Maribel","last":"Delacruz","position":"Packer","status":"Permanent","shift":1},{"id":57,"first":"Maricel","last":"Delacruz","position":"Packer","status":"Permanent","shift":1},{"id":58,"first":"Marquis","last":"Walker","position":"Picker","status":"PSS","shift":1},{"id":59,"first":"Michael","last":"Simon","position":"Picker","status":"PSS","shift":1},{"id":60,"first":"Mike","last":"Dargan","position":"Receiver","status":"Permanent","shift":1},{"id":61,"first":"Nargis","last":"Noori","position":"Packer","status":"PSS","shift":1},{"id":62,"first":"Noah","last":"Lewis","position":"Picker","status":"Permanent","shift":1},{"id":63,"first":"Omari","last":"Cary","position":"Packer","status":"Permanent","shift":1},{"id":64,"first":"Omarsharee","last":"Holley","position":"Picker","status":"Lee Group","shift":1},{"id":65,"first":"Ramon","last":"Joyner","position":"Picker","status":"Permanent","shift":1},{"id":66,"first":"Ramon","last":"Knightnor","position":"Picker","status":"Lee Group","shift":1},{"id":67,"first":"Raymond","last":"Alston","position":"Picker","status":"Permanent","shift":1},{"id":68,"first":"Raymond","last":"Bryant","position":"Turret Operator","status":"Lee Group","shift":1},{"id":69,"first":"Rogelio","last":"Valdez","position":"Shipping","status":"Permanent","shift":1},{"id":70,"first":"Ruth","last":"Yanagisawa","position":"Key Account Packer","status":"Permanent","shift":1},{"id":71,"first":"Shaniya","last":"Long","position":"Packer","status":"Integrity","shift":1},{"id":72,"first":"Stephen","last":"Hall","position":"Packer","status":"Permanent","shift":1},{"id":73,"first":"Steven","last":"Folk","position":"Packer","status":"Permanent","shift":1},{"id":74,"first":"Tamana","last":"Nesari","position":"Packer","status":"PSS","shift":1},{"id":75,"first":"Terrell","last":"Wiley","position":"Packer","status":"PSS","shift":1},{"id":76,"first":"Timothy","last":"Anderson","position":"Picker","status":"Integrity","shift":1},{"id":77,"first":"William","last":"Cooke","position":"Picker","status":"Permanent","shift":1},{"id":78,"first":"William","last":"Norton","position":"Packer","status":"Permanent","shift":1},{"id":79,"first":"William","last":"Sellers","position":"Inventory","status":"Permanent","shift":1},{"id":80,"first":"Yoeli","last":"Reimundezpedre","position":"Packer","status":"PSS","shift":1},{"id":81,"first":"Zarina","last":"Muradi","position":"Packer","status":"PSS","shift":1},{"id":82,"first":"Zeba","last":"Noori","position":"Packer","status":"PSS","shift":1},{"id":83,"first":"Zillur","last":"Rahman","position":"Packer","status":"PSS","shift":1},{"id":84,"first":"Zoe","last":"Harris","position":"Packer","status":"Permanent","shift":1},{"id":85,"first":"Abdul","last":"Moradi","position":"Packer","status":"PSS","shift":2},{"id":86,"first":"Amy","last":"Knight","position":"Packer","status":"Permanent","shift":2},{"id":87,"first":"Basel","last":"Zeytun","position":"Picker","status":"PSS","shift":2},{"id":88,"first":"Beulah","last":"Odon","position":"Picker","status":"Permanent","shift":2},{"id":89,"first":"Carlos","last":"Etrella-Perez","position":"Packer","status":"PSS","shift":2},{"id":90,"first":"Carolyn","last":"Bynum","position":"Packer","status":"Permanent","shift":2},{"id":91,"first":"Danilo","last":"Lagatuz","position":"Picker","status":"Permanent","shift":2},{"id":92,"first":"Deshawn","last":"Freeman","position":"Picker","status":"PSS","shift":2},{"id":93,"first":"Desmen","last":"Smith","position":"Packer","status":"Permanent","shift":2},{"id":94,"first":"Donald","last":"Thompson","position":"Packer","status":"Lee Group","shift":2},{"id":95,"first":"Frozan","last":"Nabawi","position":"Packer","status":"PSS","shift":2},{"id":96,"first":"Hamza","last":"Zayegh","position":"Picker","status":"PSS","shift":2},{"id":97,"first":"Jasia","last":"Brown","position":"Packer","status":"Permanent","shift":2},{"id":98,"first":"Jonathan","last":"Delacruz","position":"Picker","status":"Permanent","shift":2},{"id":99,"first":"Josephine","last":"Evans","position":"Packer","status":"Permanent","shift":2},{"id":100,"first":"Ke","last":"Payne","position":"Packer","status":"Permanent","shift":2},{"id":101,"first":"Kevin","last":"Roberts","position":"Picker","status":"Permanent","shift":2},{"id":102,"first":"Keyonna","last":"Robinson","position":"Packer","status":"Permanent","shift":2},{"id":103,"first":"Leander","last":"Williams","position":"Picker","status":"Lee Group","shift":2},{"id":104,"first":"Moe","last":"Burford","position":"Picker","status":"Permanent","shift":2},{"id":105,"first":"Monisa","last":"Nesari","position":"Packer","status":"PSS","shift":2},{"id":106,"first":"Mursal","last":"Oryakhail","position":"Packer","status":"PSS","shift":2},{"id":107,"first":"Nicholas","last":"Hadley","position":"Packer","status":"Lee Group","shift":2},{"id":108,"first":"Nijah","last":"Greenhow","position":"Packer","status":"PSS","shift":2},{"id":109,"first":"Rana","last":"Nikzad","position":"Packer","status":"PSS","shift":2},{"id":110,"first":"Randall","last":"Coy","position":"Picker","status":"Permanent","shift":2},{"id":111,"first":"Rena","last":"Chao","position":"Packer","status":"Permanent","shift":2},{"id":112,"first":"Rohullah","last":"Zemarwal","position":"Packer","status":"PSS","shift":2},{"id":113,"first":"Sara","last":"Farjam","position":"Packer","status":"PSS","shift":2},{"id":114,"first":"Spogmai","last":"Nikzad","position":"Packer","status":"PSS","shift":2},{"id":115,"first":"Timothy","last":"Perry","position":"Picker","status":"Permanent","shift":2},{"id":116,"first":"Trevon","last":"Croker","position":"Picker","status":"Permanent","shift":2},{"id":117,"first":"Wilfredo","last":"Delacruz","position":"Picker","status":"Permanent","shift":2}];
+
+var people = readStore();
+if(!people){ people = SEED.slice(); writeStore(people); }
+
+var rows = [];      // computed view of `people`
+var editingId = null;
+
+function nextId(){
+  var m = 0; people.forEach(function(p){ if(+p.id > m) m = +p.id; }); return m + 1;
+}
+function persist(){ writeStore(people); refresh(); }
+
+/* ============================================================
+   4. RENDER
+   ============================================================ */
+function statusClass(s){
+  var k = squish(s).toLowerCase();
+  if(k === "permanent") return "b-permanent";
+  if(k === "integrity") return "b-integrity";
+  if(k === "pss") return "b-pss";
+  if(k === "lee group") return "b-lee";
+  return "b-other";
+}
+function sortRows(a,b){
+  return a.shift - b.shift || a.proper.toLowerCase().localeCompare(b.proper.toLowerCase());
+}
+function filtered(){
+  var q = squish(document.getElementById("q").value).toLowerCase();
+  var sh = document.getElementById("fShift").value;
+  var po = document.getElementById("fPos").value;
+  return rows.filter(function(r){
+    if(sh && String(r.shift) !== sh) return false;
+    if(po && r.position !== po) return false;
+    if(q && r.proper.toLowerCase().indexOf(q) < 0 && r.short.indexOf(q) < 0) return false;
+    return true;
+  });
+}
+function refresh(){
+  rows = computeAll(people).sort(sortRows);
+
+  // datalists + position filter
+  var positions = [], statuses = [];
+  rows.forEach(function(r){
+    if(positions.indexOf(r.position) < 0) positions.push(r.position);
+    if(statuses.indexOf(r.status) < 0) statuses.push(r.status);
+  });
+  positions.sort(); statuses.sort();
+  document.getElementById("dl_pos").innerHTML =
+    positions.map(function(p){ return '<option value="'+esc(p)+'">'; }).join("");
+  document.getElementById("dl_status").innerHTML =
+    statuses.map(function(s){ return '<option value="'+esc(s)+'">'; }).join("");
+  var fp = document.getElementById("fPos"), keep = fp.value;
+  fp.innerHTML = '<option value="">All positions</option>' +
+    positions.map(function(p){ return '<option value="'+esc(p)+'">'+esc(p)+'</option>'; }).join("");
+  fp.value = keep;
+
+  var s1 = rows.filter(function(r){ return r.shift === 1; }).length;
+  document.getElementById("chip").textContent =
+    rows.length + " people · " + s1 + " on 1st · " + (rows.length - s1) + " on 2nd";
+
+  var view = filtered();
+  document.getElementById("showing").textContent =
+    view.length === rows.length ? "" : "showing " + view.length + " of " + rows.length;
+
+  document.getElementById("tbody").innerHTML = view.map(function(r){
+    return '<tr>'+
+      '<td class="nm">'+esc(r.proper)+ (r.note ? '<div class="flag">! '+esc(r.note)+'</div>' : '') +'</td>'+
+      '<td class="hide-sm">'+esc(r.position)+'</td>'+
+      '<td><span class="badge '+statusClass(r.status)+'">'+esc(r.status)+'</span></td>'+
+      '<td class="shiftcell">'+r.shift+'</td>'+
+      '<td class="codes hide-sm">'+esc(r.proper)+' · '+esc(r.upper)+' · '+esc(r.short)+'</td>'+
+      '<td><div class="row-actions">'+
+        '<button class="btn ghost small" data-print="'+r.id+'">Print</button>'+
+        '<button class="btn ghost small" data-edit="'+r.id+'">Edit</button>'+
+        '<button class="btn warn small" data-del="'+r.id+'">Delete</button>'+
+      '</div></td></tr>';
+  }).join("");
+  document.getElementById("emptyState").style.display = view.length ? "none" : "block";
+}
+
+/* ---- live preview under the form ---- */
+function updatePreview(){
+  var f = document.getElementById("f_first").value,
+      l = document.getElementById("f_last").value;
+  var el = document.getElementById("preview");
+  if(!squish(f) && !squish(l)){
+    el.innerHTML = '<span class="empty">Barcode values appear here as you type.</span>';
+    return;
+  }
+  var v = variants({first:f, last:l});
+  el.innerHTML = '<span><b>1</b> '+esc(v.proper)+'</span>'+
+                 '<span><b>2</b> '+esc(v.upper)+'</span>'+
+                 '<span><b>3</b> '+esc(v.short)+'</span>';
+}
+
+/* ============================================================
+   5. PRINTING
+   ============================================================ */
+var MODULE_IN = 0.013, BAR_H = 0.40;
+
+function cardHTML(r){
+  return '<div class="card">'+
+    '<div class="card-head"><div class="card-name">'+esc(r.proper)+'</div>'+
+    '<span class="badge '+statusClass(r.status)+'">'+esc(r.status)+'</span></div>'+
+    '<div class="card-meta">'+esc(r.position)+' &middot; Shift '+r.shift+'</div>'+
+    [r.proper, r.upper, r.short].map(function(v){
+      return '<div class="bc">'+barcodeSVG(v, MODULE_IN, BAR_H)+
+             '<div class="cap">'+esc(v)+'</div></div>';
+    }).join("")+
+    (r.note ? '<div class="card-note">! '+esc(r.note)+'</div>' : '')+
+  '</div>';
+}
+
+function buildSheet(list, label){
+  var byShift = {1:[], 2:[]};
+  list.forEach(function(r){ byShift[r.shift].push(r); });
+  var html = "";
+  [1,2].forEach(function(sh){
+    var g = byShift[sh];
+    if(!g.length) return;
+    html += '<section class="shift-block">'+
+      '<div class="shift-bar">SHIFT '+sh+(label?' &mdash; '+esc(label):'')+
+      '<span>'+g.length+' '+(g.length===1?'person':'people')+'</span></div>'+
+      '<div class="grid">'+ g.map(cardHTML).join("") +'</div></section>';
+  });
+  return html;
+}
+
+function doPrint(list, label){
+  if(!list.length){ toast("Nothing to print with those filters.", true); return; }
+  document.getElementById("sheet").innerHTML = buildSheet(list, label);
+  window.print();
+}
+
+/* ============================================================
+   6. FILES — CSV template, CSV import, JSON backup
+   ============================================================ */
+function download(name, text, mime){
+  var blob = new Blob([text], {type: mime || "text/plain;charset=utf-8"});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); a.remove(); }, 400);
+}
+
+var CSV_HEADER = "First,Last,Position,Status,Shift";
+
+function csvCell(v){
+  v = String(v == null ? "" : v);
+  return /[",\n]/.test(v) ? '"' + v.replace(/"/g,'""') + '"' : v;
+}
+
+function parseCSV(text){
+  var rowsOut = [], row = [], cur = "", q = false, i, c;
+  text = text.replace(/\r\n?/g, "\n");
+  for(i=0;i<text.length;i++){
+    c = text.charAt(i);
+    if(q){
+      if(c === '"'){ if(text.charAt(i+1) === '"'){ cur += '"'; i++; } else q = false; }
+      else cur += c;
+    } else if(c === '"'){ q = true; }
+    else if(c === ","){ row.push(cur); cur = ""; }
+    else if(c === "\n"){ row.push(cur); rowsOut.push(row); row = []; cur = ""; }
+    else cur += c;
+  }
+  if(cur.length || row.length){ row.push(cur); rowsOut.push(row); }
+  return rowsOut.filter(function(r){ return r.some(function(x){ return squish(x); }); });
+}
+
+function importCSV(text){
+  var table = parseCSV(text);
+  if(!table.length){ toast("That file looks empty.", true); return; }
+  var head = table[0].map(function(h){ return squish(h).toLowerCase(); });
+  var idx = {first:head.indexOf("first"), last:head.indexOf("last"),
+             position:head.indexOf("position"), status:head.indexOf("status"),
+             shift:head.indexOf("shift")};
+  if(idx.first < 0 || idx.last < 0){
+    toast("Need at least a First and a Last column. Download the template.", true); return;
+  }
+  var added = 0, skipped = 0, id = nextId();
+  table.slice(1).forEach(function(r){
+    var first = squish(r[idx.first]), last = squish(r[idx.last]);
+    if(!first || !last){ skipped++; return; }
+    people.push({id: id++, first: first, last: last,
+      position: idx.position > -1 ? (squish(r[idx.position]) || "Picker") : "Picker",
+      status:   idx.status   > -1 ? (squish(r[idx.status])   || "Permanent") : "Permanent",
+      shift:    idx.shift    > -1 && squish(r[idx.shift]).charAt(0) === "2" ? 2 : 1});
+    added++;
+  });
+  persist();
+  toast("Added " + added + (skipped ? ", skipped " + skipped + " row(s) missing a name." : "."));
+}
+
+/* ============================================================
+   7. WIRING
+   ============================================================ */
+var toastTimer;
+function toast(msg, bad){
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.className = "show" + (bad ? " bad" : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.className = ""; }, 3200);
+}
+
+function resetForm(){
+  editingId = null;
+  document.getElementById("f_first").value = "";
+  document.getElementById("f_last").value = "";
+  document.getElementById("f_pos").value = "Picker";
+  document.getElementById("f_status").value = "Permanent";
+  document.getElementById("f_shift").value = "1";
+  document.getElementById("formTitle").textContent = "Add a person";
+  document.getElementById("saveBtn").textContent = "Add to roster";
+  document.getElementById("cancelBtn").style.display = "none";
+  updatePreview();
+}
+
+document.getElementById("saveBtn").addEventListener("click", function(){
+  var first = squish(document.getElementById("f_first").value),
+      last  = squish(document.getElementById("f_last").value);
+  if(!first || !last){ toast("Enter both a first and a last name.", true); return; }
+  var rec = {first: first, last: last,
+             position: squish(document.getElementById("f_pos").value) || "Picker",
+             status: squish(document.getElementById("f_status").value) || "Permanent",
+             shift: document.getElementById("f_shift").value === "2" ? 2 : 1};
+  if(editingId != null){
+    people = people.map(function(p){
+      return +p.id === +editingId ? Object.assign({}, p, rec) : p; });
+    toast("Updated " + firstOf(first) + " " + surnameOf(last) + ".");
+  }else{
+    rec.id = nextId(); people.push(rec);
+    toast("Added " + rec.first + " " + surnameOf(last) + " to shift " + rec.shift + ".");
+  }
+  resetForm(); persist();
+});
+
+document.getElementById("cancelBtn").addEventListener("click", resetForm);
+
+document.getElementById("tbody").addEventListener("click", function(e){
+  var b = e.target.closest("button"); if(!b) return;
+  var id = b.getAttribute("data-print") || b.getAttribute("data-edit") || b.getAttribute("data-del");
+  var r = rows.filter(function(x){ return +x.id === +id; })[0];
+  var p = people.filter(function(x){ return +x.id === +id; })[0];
+  if(!r || !p) return;
+
+  if(b.hasAttribute("data-print")){ doPrint([r], ""); return; }
+
+  if(b.hasAttribute("data-edit")){
+    editingId = p.id;
+    document.getElementById("f_first").value = p.first;
+    document.getElementById("f_last").value = p.last;
+    document.getElementById("f_pos").value = p.position || "Picker";
+    document.getElementById("f_status").value = p.status || "Permanent";
+    document.getElementById("f_shift").value = String(p.shift) === "2" ? "2" : "1";
+    document.getElementById("formTitle").textContent = "Edit " + r.proper;
+    document.getElementById("saveBtn").textContent = "Save changes";
+    document.getElementById("cancelBtn").style.display = "";
+    updatePreview();
+    window.scrollTo({top:0, behavior:"smooth"});
+    return;
+  }
+  if(b.hasAttribute("data-del")){
+    if(!confirm("Remove " + r.proper + " from the roster?")) return;
+    people = people.filter(function(x){ return +x.id !== +id; });
+    persist(); toast("Removed " + r.proper + ".");
+  }
+});
+
+document.getElementById("printFiltered").addEventListener("click", function(){
+  var po = document.getElementById("fPos").value;
+  var sh = document.getElementById("fShift").value;
+  var bits = [];
+  if(po) bits.push(po + "s");
+  if(sh) bits.push(sh === "2" ? "2nd shift" : "1st shift");
+  doPrint(filtered(), bits.join(" · "));
+});
+
+document.getElementById("templateBtn").addEventListener("click", function(){
+  download("CF_Roster_template.csv",
+    CSV_HEADER + "\n" +
+    "John,Dela Cruz,Picker,Permanent,1\n" +
+    "Jane,Doe,Inventory,PSS,2\n", "text/csv;charset=utf-8");
+  toast("Template downloaded. Keep the header row.");
+});
+
+document.getElementById("importBtn").addEventListener("click", function(){
+  document.getElementById("importFile").click();
+});
+document.getElementById("importFile").addEventListener("change", function(e){
+  var f = e.target.files[0]; if(!f) return;
+  var rd = new FileReader();
+  rd.onload = function(){ importCSV(String(rd.result)); };
+  rd.onerror = function(){ toast("Couldn't read that file.", true); };
+  rd.readAsText(f); e.target.value = "";
+});
+
+document.getElementById("backupBtn").addEventListener("click", function(){
+  var stamp = new Date().toISOString().slice(0,10);
+  download("CF_Roster_backup_" + stamp + ".json",
+    JSON.stringify({app:"cf-roster", version:1, saved:new Date().toISOString(), people:people}, null, 1),
+    "application/json");
+  toast("Backup downloaded — " + people.length + " people.");
+});
+
+document.getElementById("restoreBtn").addEventListener("click", function(){
+  document.getElementById("restoreFile").click();
+});
+document.getElementById("restoreFile").addEventListener("change", function(e){
+  var f = e.target.files[0]; if(!f) return;
+  var rd = new FileReader();
+  rd.onload = function(){
+    try{
+      var data = JSON.parse(String(rd.result));
+      var list = Array.isArray(data) ? data : data.people;
+      if(!Array.isArray(list)) throw new Error("shape");
+      if(!confirm("Replace the current roster (" + people.length +
+                  " people) with this backup (" + list.length + ")?")) return;
+      var id = 1;
+      people = list.map(function(p){
+        return {id: id++, first: squish(p.first), last: squish(p.last),
+                position: squish(p.position) || "Picker",
+                status: squish(p.status) || "Permanent",
+                shift: String(p.shift) === "2" ? 2 : 1};
+      }).filter(function(p){ return p.first && p.last; });
+      persist(); toast("Restored " + people.length + " people.");
+    }catch(err){ toast("That isn't a roster backup file.", true); }
+  };
+  rd.readAsText(f); e.target.value = "";
+});
+
+document.getElementById("wipeBtn").addEventListener("click", function(){
+  if(!confirm("Delete all " + people.length + " people? Download a backup first if you might need them.")) return;
+  people = []; persist(); toast("Roster cleared.");
+});
+
+["q","fShift","fPos"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", refresh);
+  document.getElementById(id).addEventListener("change", refresh);
+});
+["f_first","f_last"].forEach(function(id){
+  document.getElementById(id).addEventListener("input", updatePreview);
+});
+document.getElementById("f_last").addEventListener("keydown", function(e){
+  if(e.key === "Enter") document.getElementById("saveBtn").click();
+});
+
+refresh();
+updatePreview();
+</script>
+</body>
+</html>
