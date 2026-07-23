@@ -86,6 +86,17 @@ th.sortable[aria-sort="descending"]::after{content:"\25BC";opacity:1;font-size:9
 th.sortable[aria-sort]{color:var(--navy)}
 .ovr{display:inline-block;background:var(--safety);color:var(--navy);font-size:9px;font-weight:800;
      letter-spacing:.07em;padding:1px 5px;border-radius:2px;margin-left:6px;vertical-align:1px}
+.chipwrap{margin-top:13px;padding-top:12px;border-top:1px solid var(--line-soft)}
+.chiprow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{font:inherit;font-size:12px;padding:5px 11px;border:1px solid var(--line);background:#fff;
+      border-radius:14px;cursor:pointer;color:var(--steel);white-space:nowrap}
+.chip .n{font-family:var(--mono);font-size:10.5px;opacity:.6;margin-left:6px}
+.chip:hover{border-color:var(--navy);color:var(--navy)}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.chip[aria-pressed="true"] .n{opacity:.85}
+.chip.all[aria-pressed="true"]{background:var(--safety);border-color:var(--safety);color:var(--navy)}
+.chip:focus-visible{outline:2px solid var(--safety);outline-offset:2px}
+.chip.zero{opacity:.45}
 
 /* ---- toast ---- */
 #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:3px;font-size:13px;box-shadow:0 6px 22px rgba(0,0,0,.25);transition:transform .22s ease;z-index:60;max-width:90vw}
@@ -173,11 +184,14 @@ th.sortable[aria-sort]{color:var(--navy)}
       <div class="toolbar">
         <div class="grow"><label for="q">Search</label><input id="q" placeholder="Name or barcode…" autocomplete="off"></div>
         <div><label for="fShift">Shift</label><select id="fShift"><option value="">All shifts</option><option value="1">1st</option><option value="2">2nd</option></select></div>
-        <div><label for="fPos">Job title</label><select id="fPos"><option value="">All job titles</option></select></div>
         <div><label for="fStatus">Status</label><select id="fStatus"><option value="">All statuses</option></select></div>
         <div><button class="btn ghost" id="clearFilters">Clear</button></div>
         <div class="spacer"></div>
         <div><button class="btn" id="printFiltered">Print these sheets</button></div>
+      </div>
+      <div class="chipwrap">
+        <label id="posLabel">Job titles — pick any number</label>
+        <div class="chiprow" id="posChips" role="group" aria-labelledby="posLabel"></div>
       </div>
       <div class="toolbar" style="margin-top:12px">
         <div><button class="btn ghost" id="importBtn">Import CSV</button><input type="file" id="importFile" accept=".csv,text/csv" hidden></div>
@@ -467,6 +481,7 @@ function sortRows(a,b){
 /* Table sort is a viewing aid. Printing always groups by shift, then name,
    so a sheet looks the same however the screen happens to be sorted. */
 var sortKey = "shift", sortDir = 1;
+var selectedPos = [];        // empty === every job title
 
 function applySort(list){
   var k = sortKey, d = sortDir;
@@ -479,18 +494,33 @@ function applySort(list){
   });
 }
 
-function filtered(){
+function matches(r, ignorePos){
   var q = squish(document.getElementById("q").value).toLowerCase();
   var sh = document.getElementById("fShift").value;
-  var po = document.getElementById("fPos").value;
   var stv = document.getElementById("fStatus").value;
-  return rows.filter(function(r){
-    if(sh && String(r.shift) !== sh) return false;
-    if(po && r.position !== po) return false;
-    if(stv && r.status !== stv) return false;
-    if(q && r.proper.toLowerCase().indexOf(q) < 0 && r.short.toLowerCase().indexOf(q) < 0) return false;
-    return true;
-  });
+  if(sh && String(r.shift) !== sh) return false;
+  if(stv && r.status !== stv) return false;
+  if(!ignorePos && selectedPos.length && selectedPos.indexOf(r.position) < 0) return false;
+  if(q && r.proper.toLowerCase().indexOf(q) < 0 && r.short.toLowerCase().indexOf(q) < 0) return false;
+  return true;
+}
+function filtered(){ return rows.filter(function(r){ return matches(r, false); }); }
+
+/* Chip counts ignore the job-title filter itself, so each number is
+   "how many you'd add by ticking this", not "how many are ticked". */
+function renderPosChips(positions){
+  var pool = rows.filter(function(r){ return matches(r, true); });
+  var counts = {};
+  pool.forEach(function(r){ counts[r.position] = (counts[r.position] || 0) + 1; });
+  var all = selectedPos.length === 0;
+  document.getElementById("posChips").innerHTML =
+    '<button type="button" class="chip all" data-pos="" aria-pressed="'+all+'">All job titles'+
+      '<span class="n">'+pool.length+'</span></button>' +
+    positions.map(function(p){
+      var on = selectedPos.indexOf(p) > -1, n = counts[p] || 0;
+      return '<button type="button" class="chip'+(n?'':' zero')+'" data-pos="'+esc(p)+'" '+
+             'aria-pressed="'+on+'">'+esc(p)+'<span class="n">'+n+'</span></button>';
+    }).join("");
 }
 
 function fillSelect(el, values, allLabel){
@@ -512,8 +542,11 @@ function refresh(){
 
   document.getElementById("dl_status").innerHTML =
     statuses.map(function(s){ return '<option value="'+esc(s)+'">'; }).join("");
-  fillSelect(document.getElementById("fPos"), positions, "All job titles");
   fillSelect(document.getElementById("fStatus"), statuses, "All statuses");
+
+  // a job title can vanish when its last holder is removed
+  selectedPos = selectedPos.filter(function(p){ return positions.indexOf(p) > -1; });
+  renderPosChips(positions);
 
   // job-title dropdown on the form, plus an escape hatch for a brand new title
   var sel = document.getElementById("f_pos"), keepPos = sel.value;
@@ -802,12 +835,22 @@ document.getElementById("tbody").addEventListener("click", function(e){
   }
 });
 
+document.getElementById("posChips").addEventListener("click", function(e){
+  var b = e.target.closest(".chip"); if(!b) return;
+  var p = b.getAttribute("data-pos");
+  if(!p){ selectedPos = []; }
+  else{
+    var i = selectedPos.indexOf(p);
+    if(i > -1) selectedPos.splice(i, 1); else selectedPos.push(p);
+  }
+  refresh();
+});
+
 document.getElementById("printFiltered").addEventListener("click", function(){
-  var po = document.getElementById("fPos").value;
   var sh = document.getElementById("fShift").value;
   var stv = document.getElementById("fStatus").value;
   var bits = [];
-  if(po) bits.push(po);
+  if(selectedPos.length) bits.push(selectedPos.slice().sort().join(" + "));
   if(stv) bits.push(stv);
   if(sh) bits.push(sh === "2" ? "2nd shift" : "1st shift");
   doPrint(filtered(), bits.join(" · "));
@@ -816,8 +859,8 @@ document.getElementById("printFiltered").addEventListener("click", function(){
 document.getElementById("clearFilters").addEventListener("click", function(){
   document.getElementById("q").value = "";
   document.getElementById("fShift").value = "";
-  document.getElementById("fPos").value = "";
   document.getElementById("fStatus").value = "";
+  selectedPos = [];
   refresh();
 });
 
@@ -896,7 +939,7 @@ document.getElementById("wipeBtn").addEventListener("click", function(){
   people = []; persist(); toast("Roster cleared.");
 });
 
-["q","fShift","fPos","fStatus"].forEach(function(id){
+["q","fShift","fStatus"].forEach(function(id){
   document.getElementById(id).addEventListener("input", refresh);
   document.getElementById(id).addEventListener("change", refresh);
 });
