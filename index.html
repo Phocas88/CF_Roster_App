@@ -101,6 +101,26 @@ th.sortable[aria-sort]{color:var(--navy)}
 .chip.all[aria-pressed="true"]{background:var(--safety);border-color:var(--safety);color:var(--navy)}
 .chip:focus-visible{outline:2px solid var(--safety);outline-offset:2px}
 .chip.zero{opacity:.45}
+.modetabs{margin-left:auto;display:flex;border:1px solid var(--line);border-radius:3px;overflow:hidden}
+.modetab{font:inherit;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  padding:5px 13px;border:0;background:#fff;color:var(--steel);cursor:pointer}
+.modetab+.modetab{border-left:1px solid var(--line)}
+.modetab[aria-selected="true"]{background:var(--navy);color:#fff}
+.modetab:focus-visible{outline:2px solid var(--safety);outline-offset:-2px}
+textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:2px;font-family:var(--mono);
+  font-size:13px;line-height:1.6;resize:vertical;background:#fff;color:var(--ink)}
+textarea:focus{outline:2px solid var(--navy);outline-offset:1px;border-color:var(--navy)}
+.bulkprev{margin-top:12px;font-size:12.5px}
+.bulkprev table{width:100%}
+.bulkprev td{padding:4px 8px;border-bottom:1px solid var(--line-soft);font-family:var(--mono);font-size:12px}
+.bulkprev td.who{font-family:var(--ui)}
+.bulkprev .bad{color:var(--danger)}
+.bulkprev .hd{font-family:var(--ui);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--steel);font-weight:700;margin-bottom:6px}
+th.chk,td.chk{width:34px;padding-left:12px;padding-right:0}
+td.chk input,th.chk input{width:15px;height:15px;cursor:pointer;accent-color:var(--navy)}
+tr.picked{background:#EEF3FB}
+tr.picked:hover{background:#E6EDF9}
 
 /* ---- toast ---- */
 #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:3px;font-size:13px;box-shadow:0 6px 22px rgba(0,0,0,.25);transition:transform .22s ease;z-index:60;max-width:90vw}
@@ -162,14 +182,22 @@ th.sortable[aria-sort]{color:var(--navy)}
 
   <!-- ADD / EDIT -->
   <section class="panel">
-    <div class="panel-head"><h2 id="formTitle">Add associate</h2></div>
-    <div class="panel-body">
+    <div class="panel-head">
+      <h2 id="formTitle">Add associates</h2>
+      <div class="modetabs" role="tablist" aria-label="How many to add">
+        <button class="modetab" id="modeOne" role="tab" aria-selected="true">One</button>
+        <button class="modetab" id="modeMany" role="tab" aria-selected="false">Several</button>
+      </div>
+    </div>
+
+    <div class="panel-body" id="paneOne">
       <div class="formgrid">
         <div><label for="f_first">First name</label><input id="f_first" autocomplete="off"></div>
         <div><label for="f_last">Last name</label><input id="f_last" autocomplete="off" placeholder="Dela Cruz"></div>
         <div><label for="f_pos">Job title</label><select id="f_pos"></select></div>
         <div id="newPosWrap" style="display:none"><label for="f_newpos">New job title</label><input id="f_newpos" autocomplete="off" placeholder="Replenishment"></div>
-        <div><label for="f_status">Employment status</label><input id="f_status" list="dl_status" autocomplete="off" value="Permanent"><datalist id="dl_status"></datalist></div>
+        <div><label for="f_status">Employment status</label><select id="f_status"></select></div>
+        <div id="newStatusWrap" style="display:none"><label for="f_newstatus">New status</label><input id="f_newstatus" autocomplete="off" placeholder="Agency name"></div>
         <div><label for="f_shift">Shift</label><select id="f_shift"><option value="1">1st</option><option value="2">2nd</option></select></div>
         <div><label for="f_custom">System barcode <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional)</span></label><input id="f_custom" autocomplete="off" placeholder="leave blank to use the name"></div>
       </div>
@@ -180,6 +208,27 @@ th.sortable[aria-sort]{color:var(--navy)}
       <div class="preview" id="preview"><span class="empty">Barcode appears here as you type.</span></div>
       <p class="note">Fill in <b>System barcode</b> only when the warehouse system already holds a code that
         doesn't match the name &mdash; it replaces the generated barcode so scans still match.</p>
+    </div>
+
+    <div class="panel-body" id="paneMany" style="display:none">
+      <div class="formgrid">
+        <div><label for="b_pos">Job title</label><select id="b_pos"></select></div>
+        <div id="bNewPosWrap" style="display:none"><label for="b_newpos">New job title</label><input id="b_newpos" autocomplete="off" placeholder="Replenishment"></div>
+        <div><label for="b_status">Employment status</label><select id="b_status"></select></div>
+        <div id="bNewStatusWrap" style="display:none"><label for="b_newstatus">New status</label><input id="b_newstatus" autocomplete="off" placeholder="Agency name"></div>
+        <div><label for="b_shift">Shift</label><select id="b_shift"><option value="1">1st</option><option value="2">2nd</option></select></div>
+      </div>
+      <div style="margin-top:12px">
+        <label for="b_names">Names — one per line</label>
+        <textarea id="b_names" rows="7" spellcheck="false" placeholder="John Dela Cruz&#10;Amy Knight&#10;Basel Zeytun, bzeyfuh"></textarea>
+        <p class="note">These all share the job title, status and shift above. To give someone a
+          system barcode, put it after a comma on their line.</p>
+      </div>
+      <div class="formactions">
+        <button class="btn" id="bulkAddBtn">Add all</button>
+        <button class="btn ghost" id="bulkClearBtn">Clear list</button>
+      </div>
+      <div id="bulkPreview" class="bulkprev"></div>
     </div>
   </section>
 
@@ -204,8 +253,6 @@ th.sortable[aria-sort]{color:var(--navy)}
         <div><button class="btn ghost" id="templateBtn">Download CSV template</button></div>
         <div><button class="btn ghost" id="backupBtn">Download backup</button></div>
         <div><button class="btn ghost" id="restoreBtn">Restore from backup</button><input type="file" id="restoreFile" accept=".json,application/json" hidden></div>
-        <div class="spacer"></div>
-        <div><button class="btn warn" id="wipeBtn">Clear roster</button></div>
       </div>
       <p class="note">Everything is stored on this computer only. Use <b>Download backup</b> to move the roster to another machine, then <b>Restore from backup</b> there.</p>
     </div>
@@ -213,10 +260,11 @@ th.sortable[aria-sort]{color:var(--navy)}
 
   <!-- ROSTER -->
   <section class="panel">
-    <div class="panel-head"><h2>Roster</h2><span class="sub" id="showing" style="color:var(--steel)"></span><button class="btn warn small" id="delFiltered" style="margin-left:auto;display:none">Delete these</button></div>
+    <div class="panel-head"><h2>Roster</h2><span class="sub" id="showing" style="color:var(--steel)"></span><button class="btn warn small" id="delSelected" style="margin-left:auto;display:none">Delete selected</button></div>
     <div class="panel-body" style="padding:0">
       <div class="tablewrap"><table>
         <thead><tr>
+          <th class="chk"><input type="checkbox" id="selAll" aria-label="Select all shown"></th>
           <th class="sortable" data-sort="proper">Name</th>
           <th class="sortable hide-sm" data-sort="position">Job title</th>
           <th class="sortable" data-sort="status">Status</th>
@@ -536,48 +584,59 @@ function fillSelect(el, values, allLabel){
   el.value = values.indexOf(keep) > -1 ? keep : "";
 }
 
+var BASE_STATUSES = ["Permanent", "Integrity", "PSS", "Lee Group"];
+var picked = {};          // id -> true, for multi-select delete
+
+/* A form picker: known values plus an escape hatch for a new one. */
+function fillPicker(el, values, placeholder, newLabel){
+  var keep = el.value;
+  el.innerHTML = '<option value="">'+placeholder+'</option>' +
+    values.map(function(v){ return '<option value="'+esc(v)+'">'+esc(v)+'</option>'; }).join("") +
+    '<option value="__new__">'+newLabel+'</option>';
+  el.value = (keep === "__new__" || values.indexOf(keep) > -1) ? keep : "";
+}
+
 function refresh(){
   rows = computeAll(people).sort(sortRows);
 
-  var positions = [], statuses = [];
+  var positions = [], statuses = BASE_STATUSES.slice();
   rows.forEach(function(r){
     if(positions.indexOf(r.position) < 0) positions.push(r.position);
     if(statuses.indexOf(r.status) < 0) statuses.push(r.status);
   });
   positions.sort(); statuses.sort();
 
-  document.getElementById("dl_status").innerHTML =
-    statuses.map(function(s){ return '<option value="'+esc(s)+'">'; }).join("");
   fillSelect(document.getElementById("fStatus"), statuses, "All statuses");
+  fillPicker(document.getElementById("f_pos"), positions, "Select job title\u2026", "+ New job title\u2026");
+  fillPicker(document.getElementById("b_pos"), positions, "Select job title\u2026", "+ New job title\u2026");
+  fillPicker(document.getElementById("f_status"), statuses, "Select status\u2026", "+ New status\u2026");
+  fillPicker(document.getElementById("b_status"), statuses, "Select status\u2026", "+ New status\u2026");
 
   // a job title can vanish when its last holder is removed
   selectedPos = selectedPos.filter(function(p){ return positions.indexOf(p) > -1; });
   renderPosChips(positions);
 
-  // job-title dropdown on the form, plus an escape hatch for a brand new title
-  var sel = document.getElementById("f_pos"), keepPos = sel.value;
-  sel.innerHTML = '<option value="">Select job title…</option>' +
-    positions.map(function(p){ return '<option value="'+esc(p)+'">'+esc(p)+'</option>'; }).join("") +
-    '<option value="__new__">+ New job title…</option>';
-  sel.value = (keepPos === "__new__" || positions.indexOf(keepPos) > -1) ? keepPos : "";
-
   var s1 = rows.filter(function(r){ return r.shift === 1; }).length;
   document.getElementById("chip").textContent =
-    rows.length + " people · " + s1 + " on 1st · " + (rows.length - s1) + " on 2nd";
+    rows.length + " people \u00b7 " + s1 + " on 1st \u00b7 " + (rows.length - s1) + " on 2nd";
 
   var view = applySort(filtered());
   document.getElementById("showing").textContent =
     view.length === rows.length ? "" : "showing " + view.length + " of " + rows.length;
 
-  // Only offer bulk delete while a filter is active — deleting an unfiltered
-  // list is just "Clear roster", and too easy to hit by accident.
-  var del = document.getElementById("delFiltered");
-  if(view.length && view.length < rows.length){
-    del.style.display = "";
-    del.textContent = "Delete these " + view.length;
-  }else{
-    del.style.display = "none";
-  }
+  // drop selections for people who no longer exist or are filtered out of view
+  var visible = {};
+  view.forEach(function(r){ visible[r.id] = true; });
+  Object.keys(picked).forEach(function(id){ if(!visible[id]) delete picked[id]; });
+
+  var nPicked = Object.keys(picked).length;
+  var del = document.getElementById("delSelected");
+  del.style.display = nPicked ? "" : "none";
+  del.textContent = "Delete selected (" + nPicked + ")";
+
+  var all = document.getElementById("selAll");
+  all.checked = view.length > 0 && nPicked === view.length;
+  all.indeterminate = nPicked > 0 && nPicked < view.length;
 
   document.querySelectorAll("th.sortable").forEach(function(th){
     if(th.getAttribute("data-sort") === sortKey)
@@ -586,7 +645,10 @@ function refresh(){
   });
 
   document.getElementById("tbody").innerHTML = view.map(function(r){
-    return '<tr>'+
+    var on = !!picked[r.id];
+    return '<tr class="'+(on?"picked":"")+'">'+
+      '<td class="chk"><input type="checkbox" data-sel="'+r.id+'"'+(on?" checked":"")+
+        ' aria-label="Select '+esc(r.proper)+'"></td>'+
       '<td class="nm">'+esc(r.proper)+ (r.note ? '<div class="flag">! '+esc(r.note)+'</div>' : '') +'</td>'+
       '<td class="hide-sm">'+esc(r.position)+'</td>'+
       '<td><span class="badge '+statusClass(r.status)+'">'+esc(r.status)+'</span></td>'+
@@ -600,14 +662,293 @@ function refresh(){
       '</div></td></tr>';
   }).join("");
   document.getElementById("emptyState").style.display = view.length ? "none" : "block";
+  updateBulkPreview();
 }
 
+/* Render module string as SVG. moduleIn = printed width of one module. */
+function barcodeSVG(text, moduleIn, heightIn){
+  var mods = encode128(text);
+  if(!mods) return '<div class="card-note">! cannot encode: '+esc(text)+'</div>';
+  var quiet = 10, total = mods.length + quiet*2;
+  var w = (total*moduleIn).toFixed(3), h = heightIn.toFixed(3);
+  var rects = '', run = 0, i;
+  for(i=0;i<=mods.length;i++){
+    if(mods.charAt(i) === '1'){ run++; }
+    else if(run){ rects += '<rect x="'+(quiet+i-run)+'" y="0" width="'+run+'" height="10" />'; run = 0; }
+  }
+  return '<svg width="'+w+'in" height="'+h+'in" viewBox="0 0 '+total+' 10" '+
+         'preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" role="img" '+
+         'aria-label="barcode '+esc(text)+'"><g fill="#000">'+rects+'</g></svg>';
+}
+
+/* ============================================================
+   2. NAME RULES  (identical to the printed sheets)
+   - suffixes Jr/Sr/II/III/IV are dropped
+   - a multi-word surname glues into one word: Dela Cruz -> Delacruz
+   - short code is all lowercase: initial + surname
+   ============================================================ */
+var SUFFIX = {jr:1, sr:1, ii:1, iii:1, iv:1};
+
+function squish(s){ return String(s==null?"":s).replace(/\s+/g," ").trim(); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+function capWord(w){
+  if(!w) return "";
+  if(w.indexOf("-") > -1) return w.split("-").map(capWord).join("-");
+  if(w.indexOf("'") > -1){
+    var p = w.split("'");
+    return capWord(p[0]) + "'" + p.slice(1).map(function(x){
+      return x.charAt(0).toUpperCase() + x.slice(1).toLowerCase(); }).join("'");
+  }
+  var lw = w.toLowerCase();
+  if(/^mc[a-z]{2,}$/.test(lw)) return "Mc" + lw.charAt(2).toUpperCase() + lw.slice(3);
+  return lw.charAt(0).toUpperCase() + lw.slice(1);
+}
+
+function firstOf(raw){
+  return squish(raw).split(" ").map(capWord).join(" ");
+}
+
+function surnameOf(raw){
+  var words = squish(raw).split(" ").filter(Boolean);
+  while(words.length > 1 && SUFFIX[words[words.length-1].toLowerCase().replace(/\./g,"")]) words.pop();
+  if(!words.length) return "";
+  if(words.length === 1) return capWord(words[0]);
+  var glued = words.map(function(w){
+    return w.replace(/[^A-Za-z'-]/g,"").toLowerCase(); }).join("");
+  return glued.charAt(0).toUpperCase() + glued.slice(1);
+}
+
+function letters(s){ return String(s).replace(/[^A-Za-z]/g,""); }
+
+/* Build the three variants for one person (before collision fixing). */
+function variants(p){
+  var f = firstOf(p.first), s = surnameOf(p.last);
+  var proper = squish(f + " " + s);
+  return {
+    proper: proper,
+    upper: proper.toUpperCase(),
+    short: (letters(f).charAt(0) + letters(s)).toLowerCase(),
+    _f: letters(f).toLowerCase(), _s: letters(s).toLowerCase()
+  };
+}
+
+/* Short codes must be unique across the WHOLE roster, not per sheet.
+   A custom system barcode is authoritative: it is never rewritten, because
+   the warehouse system already holds that exact value. Generated codes move
+   out of its way instead. */
+function computeAll(list){
+  var out = list.map(function(p){
+    var v = variants(p);
+    var custom = squish(p.custom);
+    return {id:p.id, first:p.first, last:p.last, custom:custom,
+            position:squish(p.position)||"Unassigned",
+            status:squish(p.status)||"Permanent", shift:String(p.shift)==="2"?2:1,
+            proper:v.proper, upper:v.upper,
+            generated:v.short, short: custom || v.short,
+            overridden: !!custom && custom !== v.short,
+            note:"", _f:v._f, _s:v._s};
+  });
+
+  // 1. customs claim their value first
+  var claimed = {};
+  out.forEach(function(r){
+    if(!r.custom) return;
+    var k = r.short.toLowerCase();
+    claimed[k] = (claimed[k] || 0) + 1;
+  });
+  out.forEach(function(r){
+    if(r.custom && claimed[r.short.toLowerCase()] > 1)
+      r.note = "Two people share this barcode — check which one is right";
+  });
+
+  // 2. generated codes that clash (with each other or with a custom) expand
+  var gen = {};
+  out.forEach(function(r){ if(!r.custom) (gen[r.short] = gen[r.short] || []).push(r); });
+  Object.keys(gen).forEach(function(k){
+    var grp = gen[k];
+    if(grp.length < 2 && !claimed[k.toLowerCase()]) return;
+    grp.forEach(function(r){
+      r.short = r._f + r._s;
+      r.note = "Short code expanded — shares an initial and surname";
+    });
+  });
+
+  // 3. final sweep: guarantee every generated code is unique
+  var seen = {};
+  out.forEach(function(r){ if(r.custom) seen[r.short.toLowerCase()] = true; });
+  out.forEach(function(r){
+    if(r.custom) return;
+    var base = r.short, k = base.toLowerCase(), n = 1;
+    while(seen[k]){ n++; k = (base + n).toLowerCase(); }
+    if(n > 1){
+      r.short = base + n;
+      r.note = "Duplicate name on the roster — verify this is a different person";
+    }
+    seen[k] = true;
+  });
+
+  out.forEach(function(r){
+    if(r.overridden && !r.note)
+      r.note = "Custom barcode — the name would give " + r.generated;
+    delete r._f; delete r._s;
+  });
+  return out;
+}
+
+/* ============================================================
+   3. STORAGE — localStorage with an in-memory fallback
+   ============================================================ */
+var KEY = "cf_roster_v2";
+var memory = null, storageOK = false, storageProblem = "blocked", dirty = false;
+
+/* Probe with a payload the size of a real roster, and read it back.
+   A 1-byte test passes in sandboxes that then reject anything useful. */
+function probeStorage(){
+  var t = "__cf_probe__", pad = new Array(2049).join("x");   // ~2 KB
+  try{
+    if(typeof localStorage === "undefined" || !localStorage){ storageProblem = "blocked"; return false; }
+    localStorage.setItem(t, pad);
+    var ok = localStorage.getItem(t) === pad;
+    localStorage.removeItem(t);
+    if(!ok){ storageProblem = "blocked"; return false; }
+    return true;
+  }catch(e){
+    var hasData = false;
+    try{ hasData = localStorage.length > 0; }catch(e2){}
+    storageProblem = (e && e.name === "QuotaExceededError" && hasData) ? "full" : "blocked";
+    try{ localStorage.removeItem(t); }catch(e3){}
+    return false;
+  }
+}
+storageOK = probeStorage();
+
+function readStore(){
+  if(!storageOK) return memory;
+  try{ var raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; }
+  catch(e){ return null; }
+}
+function writeStore(list){
+  if(storageOK){
+    try{ localStorage.setItem(KEY, JSON.stringify(list)); memory = null; return true; }
+    catch(e){ storageOK = false; storageProblem = "full"; }
+  }
+  memory = list;
+  renderStorageBanner();
+  return false;
+}
+
+function renderStorageBanner(){
+  var el = document.getElementById("storagewarn");
+  if(!el) return;
+  if(storageOK){ el.style.display = "none"; return; }
+  el.style.display = "block";
+  el.innerHTML = (storageProblem === "full"
+    ? "<b>This browser is out of storage space.</b> The roster still works, but changes won't survive a refresh. " +
+      "Clear some site data, or keep working and save a backup."
+    : "<b>This browser won't let the page save.</b> Everything works, but the roster resets when the tab closes. " +
+      "That's normal in a preview pane, a private window, or when the file is opened from inside a zip &mdash; " +
+      "save this file to your computer and open it directly to keep changes."
+  ) + ' <button class="btn small" id="bannerBackup" style="margin-left:8px">Download backup</button>';
+  var b = document.getElementById("bannerBackup");
+  if(b) b.addEventListener("click", downloadBackup);
+}
+renderStorageBanner();
+
+window.addEventListener("beforeunload", function(e){
+  if(!storageOK && dirty){ e.preventDefault(); e.returnValue = ""; }
+});
+
+var SEED = [{"id":1,"first":"Albert","last":"Davis","position":"Receiver","status":"Permanent","shift":1,"custom":""},{"id":2,"first":"Alfred","last":"Payton","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":3,"first":"Ant","last":"Cherry","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":4,"first":"Armando","last":"Delacruz","position":"Turret Operator","status":"Permanent","shift":1,"custom":""},{"id":5,"first":"Armane","last":"Brooks","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":6,"first":"Arrid","last":"Tillery","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":7,"first":"Betty","last":"Whitby","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":8,"first":"Brandon","last":"Parson","position":"Inventory","status":"PSS","shift":1,"custom":""},{"id":9,"first":"Brian","last":"Christian","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":10,"first":"Calvin","last":"Crittle","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":11,"first":"Charlse","last":"Murrell","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":12,"first":"Chris","last":"Boswell","position":"Inventory","status":"PSS","shift":1,"custom":""},{"id":13,"first":"Clifton","last":"Artis","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":14,"first":"Colonious","last":"Gwaltney","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":15,"first":"Curtis","last":"Davis","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":16,"first":"Daquan","last":"Royal","position":"Inventory","status":"Permanent","shift":1,"custom":""},{"id":17,"first":"David","last":"Alston","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":18,"first":"Deandre","last":"Langford","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":19,"first":"Dennis","last":"Delacruz","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":20,"first":"Donavan","last":"Edwards","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":21,"first":"Emmette","last":"Kelley","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":22,"first":"Enrique","last":"Baysa","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":23,"first":"Evan","last":"Moore","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":24,"first":"Helen","last":"Meredith-Boyd","position":"Clerical","status":"Permanent","shift":1,"custom":""},{"id":25,"first":"Ian","last":"McAden","position":"Inventory","status":"Permanent","shift":1,"custom":""},{"id":26,"first":"Jason","last":"Linwood","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":27,"first":"Jeramie","last":"Cary","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":28,"first":"Jesusa","last":"Valdez","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":29,"first":"Joselito","last":"Robles","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":30,"first":"Kevin","last":"Hill","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":31,"first":"Kris","last":"Greenhow","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":32,"first":"Laquin","last":"Cutchin","position":"Turret Operator","status":"Lee Group","shift":1,"custom":""},{"id":33,"first":"Latisha","last":"Green","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":34,"first":"Latrell","last":"Harris","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":35,"first":"Leslie","last":"Brown","position":"Receiver","status":"Permanent","shift":1,"custom":""},{"id":36,"first":"Luella","last":"Beulah","position":"Housekeeping","status":"Permanent","shift":1,"custom":""},{"id":37,"first":"Luis","last":"Ocasiorodriguez","position":"Receiver","status":"Lee Group","shift":1,"custom":""},{"id":38,"first":"Marco","last":"Gonzalez","position":"Turret Operator","status":"PSS","shift":1,"custom":""},{"id":39,"first":"Marquis","last":"Walker","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":40,"first":"Michael","last":"Simon","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":41,"first":"Mike","last":"Dargan","position":"Receiver","status":"Permanent","shift":1,"custom":""},{"id":42,"first":"Noah","last":"Lewis","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":43,"first":"Omarsharee","last":"Holley","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":44,"first":"Ramon","last":"Joyner","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":45,"first":"Ramon","last":"Knightnor","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":46,"first":"Raymond","last":"Alston","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":47,"first":"Raymond","last":"Bryant","position":"Turret Operator","status":"Lee Group","shift":1,"custom":""},{"id":48,"first":"Rogelio","last":"Valdez","position":"Shipping","status":"Permanent","shift":1,"custom":""},{"id":49,"first":"Ruth","last":"Yanagisawa","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":50,"first":"Timothy","last":"Anderson","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":51,"first":"William","last":"Cooke","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":52,"first":"William","last":"Sellers","position":"Inventory","status":"Permanent","shift":1,"custom":""},{"id":53,"first":"Basel","last":"Zeytun","position":"Picker","status":"PSS","shift":2,"custom":""},{"id":54,"first":"Beulah","last":"Odon","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":55,"first":"Danilo","last":"Lagatuz","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":56,"first":"Deshawn","last":"Freeman","position":"Picker","status":"PSS","shift":2,"custom":""},{"id":57,"first":"Hamza","last":"Zayegh","position":"Picker","status":"PSS","shift":2,"custom":""},{"id":58,"first":"Jonathan","last":"Delacruz","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":59,"first":"Kevin","last":"Roberts","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":60,"first":"Leander","last":"Williams","position":"Picker","status":"Lee Group","shift":2,"custom":""},{"id":61,"first":"Moe","last":"Burford","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":62,"first":"Randall","last":"Coy","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":63,"first":"Timothy","last":"Perry","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":64,"first":"Trevon","last":"Croker","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":65,"first":"Wilfredo","last":"Delacruz","position":"Picker","status":"Permanent","shift":2,"custom":""}];
+
+var people = readStore();
+if(!people){ people = SEED.slice(); writeStore(people); }
+
+var rows = [];      // computed view of `people`
+var editingId = null;
+
+function nextId(){
+  var m = 0; people.forEach(function(p){ if(+p.id > m) m = +p.id; }); return m + 1;
+}
+function persist(){ writeStore(people); if(!storageOK) dirty = true; refresh(); }
+
+/* ============================================================
+   4. RENDER
+   ============================================================ */
+function statusClass(s){
+  var k = squish(s).toLowerCase();
+  if(k === "permanent") return "b-permanent";
+  if(k === "integrity") return "b-integrity";
+  if(k === "pss") return "b-pss";
+  if(k === "lee group") return "b-lee";
+  return "b-other";
+}
+function sortRows(a,b){
+  return a.shift - b.shift || a.proper.toLowerCase().localeCompare(b.proper.toLowerCase());
+}
+
+/* Table sort is a viewing aid. Printing always groups by shift, then name,
+   so a sheet looks the same however the screen happens to be sorted. */
+var sortKey = "shift", sortDir = 1;
+var selectedPos = [];        // empty === every job title
+
+function applySort(list){
+  var k = sortKey, d = sortDir;
+  return list.slice().sort(function(a,b){
+    var r = 0;
+    if(k === "shift") r = a.shift - b.shift;
+    else r = String(a[k]).toLowerCase().localeCompare(String(b[k]).toLowerCase());
+    if(r) return r * d;
+    return a.proper.toLowerCase().localeCompare(b.proper.toLowerCase());   // stable tie-break
+  });
+}
+
+function matches(r, ignorePos){
+  var q = squish(document.getElementById("q").value).toLowerCase();
+  var sh = document.getElementById("fShift").value;
+  var stv = document.getElementById("fStatus").value;
+  if(sh && String(r.shift) !== sh) return false;
+  if(stv && r.status !== stv) return false;
+  if(!ignorePos && selectedPos.length && selectedPos.indexOf(r.position) < 0) return false;
+  if(q && r.proper.toLowerCase().indexOf(q) < 0 && r.short.toLowerCase().indexOf(q) < 0) return false;
+  return true;
+}
+function filtered(){ return rows.filter(function(r){ return matches(r, false); }); }
+
+/* Chip counts ignore the job-title filter itself, so each number is
+   "how many you'd add by ticking this", not "how many are ticked". */
+function renderPosChips(positions){
+  var pool = rows.filter(function(r){ return matches(r, true); });
+  var counts = {};
+  pool.forEach(function(r){ counts[r.position] = (counts[r.position] || 0) + 1; });
+  var all = selectedPos.length === 0;
+  document.getElementById("posChips").innerHTML =
+    '<button type="button" class="chip all" data-pos="" aria-pressed="'+all+'">All job titles'+
+      '<span class="n">'+pool.length+'</span></button>' +
+    positions.map(function(p){
+      var on = selectedPos.indexOf(p) > -1, n = counts[p] || 0;
+      return '<button type="button" class="chip'+(n?'':' zero')+'" data-pos="'+esc(p)+'" '+
+             'aria-pressed="'+on+'">'+esc(p)+'<span class="n">'+n+'</span></button>';
+    }).join("");
+}
+
+function fillSelect(el, values, allLabel){
+  var keep = el.value;
+  el.innerHTML = '<option value="">' + allLabel + '</option>' +
+    values.map(function(v){ return '<option value="'+esc(v)+'">'+esc(v)+'</option>'; }).join("");
+  el.value = values.indexOf(keep) > -1 ? keep : "";
+}
+
+
 /* ---- live preview under the form ---- */
-function formPosition(){
-  var sel = document.getElementById("f_pos").value;
-  if(sel === "__new__") return squish(document.getElementById("f_newpos").value);
+function pickerValue(selId, newId){
+  var sel = document.getElementById(selId).value;
+  if(sel === "__new__") return squish(document.getElementById(newId).value);
   return squish(sel);
 }
+function formPosition(){ return pickerValue("f_pos", "f_newpos"); }
+function formStatus(){   return pickerValue("f_status", "f_newstatus"); }
 
 function updatePreview(){
   var f = document.getElementById("f_first").value,
@@ -762,6 +1103,8 @@ function resetForm(){
   document.getElementById("f_newpos").value = "";
   document.getElementById("newPosWrap").style.display = "none";
   document.getElementById("f_status").value = "Permanent";
+  document.getElementById("f_newstatus").value = "";
+  document.getElementById("newStatusWrap").style.display = "none";
   document.getElementById("f_shift").value = "1";
   document.getElementById("f_custom").value = "";
   document.getElementById("formTitle").textContent = "Add associate";
@@ -770,10 +1113,15 @@ function resetForm(){
   updatePreview();
 }
 
-document.getElementById("f_pos").addEventListener("change", function(){
-  var isNew = this.value === "__new__";
-  document.getElementById("newPosWrap").style.display = isNew ? "" : "none";
-  if(isNew) document.getElementById("f_newpos").focus();
+[["f_pos","newPosWrap","f_newpos"], ["f_status","newStatusWrap","f_newstatus"],
+ ["b_pos","bNewPosWrap","b_newpos"], ["b_status","bNewStatusWrap","b_newstatus"]]
+.forEach(function(t){
+  document.getElementById(t[0]).addEventListener("change", function(){
+    var isNew = this.value === "__new__";
+    document.getElementById(t[1]).style.display = isNew ? "" : "none";
+    if(isNew) document.getElementById(t[2]).focus();
+    updateBulkPreview();
+  });
 });
 
 document.getElementById("saveBtn").addEventListener("click", function(){
@@ -784,6 +1132,8 @@ document.getElementById("saveBtn").addEventListener("click", function(){
 
   if(!first || !last){ toast("Enter both a first and a last name.", true); return; }
   if(!pos){ toast("Pick a job title, or add a new one.", true); return; }
+  var stat = formStatus();
+  if(!stat){ toast("Pick an employment status.", true); return; }
 
   if(custom){
     if(encode128(custom) === null){
@@ -801,7 +1151,7 @@ document.getElementById("saveBtn").addEventListener("click", function(){
   }
 
   var rec = {first: first, last: last, position: pos, custom: custom,
-             status: squish(document.getElementById("f_status").value) || "Permanent",
+             status: stat,
              shift: document.getElementById("f_shift").value === "2" ? 2 : 1};
   if(editingId != null){
     people = people.map(function(p){
@@ -836,7 +1186,11 @@ document.getElementById("tbody").addEventListener("click", function(e){
     }
     sel.value = want;
     document.getElementById("newPosWrap").style.display = "none";
-    document.getElementById("f_status").value = p.status || "Permanent";
+    var ss = document.getElementById("f_status"), wantS = squish(p.status) || "Permanent";
+    if(!Array.prototype.some.call(ss.options, function(o){ return o.value === wantS; }))
+      ss.insertBefore(new Option(wantS, wantS), ss.options[ss.options.length-1]);
+    ss.value = wantS;
+    document.getElementById("newStatusWrap").style.display = "none";
     document.getElementById("f_shift").value = String(p.shift) === "2" ? "2" : "1";
     document.getElementById("f_custom").value = squish(p.custom);
     document.getElementById("formTitle").textContent = "Edit " + r.proper;
@@ -853,19 +1207,135 @@ document.getElementById("tbody").addEventListener("click", function(e){
   }
 });
 
-document.getElementById("delFiltered").addEventListener("click", function(){
-  var view = filtered();
-  if(!view.length) return;
-  var titles = [];
-  view.forEach(function(r){ if(titles.indexOf(r.position) < 0) titles.push(r.position); });
-  if(!confirm("Remove these " + view.length + " people from the roster?\n\n" +
-              "Job titles affected: " + titles.sort().join(", ") + "\n\n" +
-              "Download a backup first if you might need them back.")) return;
-  var ids = {};
-  view.forEach(function(r){ ids[r.id] = true; });
-  people = people.filter(function(p){ return !ids[p.id]; });
+/* ---- bulk add -------------------------------------------------------
+   One name per line. "First Last" — everything after the first space is
+   the surname, so "John Dela Cruz" works. An optional comma gives that
+   person a system barcode: "Basel Zeytun, bzeyfuh".
+   -------------------------------------------------------------------- */
+function parseBulk(){
+  var text = document.getElementById("b_names").value;
+  var seenInBatch = {};
+  var existing = {};
+  rows.forEach(function(r){ existing[r.short.toLowerCase()] = r.proper; });
+
+  return text.split("\n").map(function(line){
+    var raw = squish(line);
+    if(!raw) return null;
+    var parts = raw.split(","), namePart = squish(parts[0]),
+        custom = parts.length > 1 ? squish(parts.slice(1).join(",")) : "";
+    var bits = namePart.split(" ");
+    var out = {raw: raw, first: bits[0] || "", last: bits.slice(1).join(" "), custom: custom, problem: ""};
+
+    if(!out.first || !out.last){ out.problem = "needs a first and last name"; return out; }
+    if(custom && encode128(custom) === null){ out.problem = "barcode has characters Code 128 can't encode"; return out; }
+
+    var v = variants({first: out.first, last: out.last});
+    out.proper = v.proper;
+    out.code = custom || v.short;
+    if(custom && custom !== v.short) out.warn = "custom — name gives " + v.short;
+
+    var k = out.code.toLowerCase();
+    if(seenInBatch[k]) out.problem = "same barcode as " + seenInBatch[k] + " in this list";
+    else if(existing[k] && !custom) out.warn = "matches " + existing[k] + " — will be made unique";
+    else if(existing[k] && custom) out.problem = "barcode already used by " + existing[k];
+    seenInBatch[k] = out.proper;
+    return out;
+  }).filter(Boolean);
+}
+
+function updateBulkPreview(){
+  var el = document.getElementById("bulkPreview");
+  if(!el) return;
+  var list = parseBulk();
+  if(!list.length){ el.innerHTML = ""; return; }
+  var bad = list.filter(function(x){ return x.problem; }).length;
+  el.innerHTML =
+    '<div class="hd">' + (list.length - bad) + ' ready' + (bad ? ', ' + bad + ' need fixing' : '') + '</div>' +
+    '<table><tbody>' + list.map(function(x){
+      if(x.problem)
+        return '<tr><td class="who">'+esc(x.raw)+'</td><td class="bad">'+esc(x.problem)+'</td></tr>';
+      return '<tr><td class="who">'+esc(x.proper)+'</td><td>'+esc(x.code)+
+             (x.warn ? ' <span class="bad">'+esc(x.warn)+'</span>' : '')+'</td></tr>';
+    }).join("") + '</tbody></table>';
+}
+
+document.getElementById("b_names").addEventListener("input", updateBulkPreview);
+
+document.getElementById("bulkClearBtn").addEventListener("click", function(){
+  document.getElementById("b_names").value = "";
+  updateBulkPreview();
+});
+
+document.getElementById("bulkAddBtn").addEventListener("click", function(){
+  var pos = pickerValue("b_pos", "b_newpos");
+  var stat = pickerValue("b_status", "b_newstatus");
+  if(!pos){ toast("Pick a job title for the group.", true); return; }
+  if(!stat){ toast("Pick an employment status for the group.", true); return; }
+
+  var list = parseBulk();
+  var good = list.filter(function(x){ return !x.problem; });
+  var bad = list.length - good.length;
+  if(!good.length){ toast("No usable names in the list.", true); return; }
+
+  var odd = good.filter(function(x){ return x.warn && x.custom; });
+  if(odd.length && !confirm(
+      odd.length + " barcode(s) don't match the name format:\n\n" +
+      odd.map(function(x){ return "   " + x.proper + " \u2192 " + x.custom; }).join("\n") +
+      "\n\nAdd them anyway? Pick this if the warehouse system already holds those codes."))
+    return;
+
+  var shift = document.getElementById("b_shift").value === "2" ? 2 : 1;
+  var id = nextId();
+  good.forEach(function(x){
+    people.push({id: id++, first: x.first, last: x.last, position: pos,
+                 status: stat, shift: shift, custom: x.custom});
+  });
+  document.getElementById("b_names").value = "";
   persist();
-  toast("Removed " + view.length + " people.");
+  toast("Added " + good.length + " to shift " + shift +
+        (bad ? ". " + bad + " line(s) skipped — see the list." : "."));
+});
+
+/* ---- mode tabs ---- */
+function setMode(many){
+  document.getElementById("paneOne").style.display = many ? "none" : "";
+  document.getElementById("paneMany").style.display = many ? "" : "none";
+  document.getElementById("modeOne").setAttribute("aria-selected", String(!many));
+  document.getElementById("modeMany").setAttribute("aria-selected", String(many));
+  document.getElementById("formTitle").textContent = many ? "Add several associates" : "Add associates";
+  if(many) updateBulkPreview();
+}
+document.getElementById("modeOne").addEventListener("click", function(){ resetForm(); setMode(false); });
+document.getElementById("modeMany").addEventListener("click", function(){ setMode(true); });
+
+document.getElementById("delSelected").addEventListener("click", function(){
+  var ids = Object.keys(picked);
+  if(!ids.length) return;
+  var who = rows.filter(function(r){ return picked[r.id]; });
+  var names = who.slice(0,6).map(function(r){ return r.proper; }).join(", ");
+  if(who.length > 6) names += ", and " + (who.length - 6) + " more";
+  if(!confirm("Remove " + who.length + " " + (who.length === 1 ? "person" : "people") +
+              " from the roster?\n\n" + names +
+              "\n\nDownload a backup first if you might need them back.")) return;
+  people = people.filter(function(p){ return !picked[p.id]; });
+  picked = {};
+  persist();
+  toast("Removed " + who.length + ".");
+});
+
+document.getElementById("selAll").addEventListener("change", function(){
+  var view = filtered();
+  if(this.checked) view.forEach(function(r){ picked[r.id] = true; });
+  else picked = {};
+  refresh();
+});
+
+document.getElementById("tbody").addEventListener("change", function(e){
+  var cb = e.target;
+  if(!cb.hasAttribute || !cb.hasAttribute("data-sel")) return;
+  var id = cb.getAttribute("data-sel");
+  if(cb.checked) picked[id] = true; else delete picked[id];
+  refresh();
 });
 
 document.getElementById("posChips").addEventListener("click", function(e){
@@ -965,11 +1435,6 @@ document.getElementById("restoreFile").addEventListener("change", function(e){
     }catch(err){ toast("That isn't a roster backup file.", true); }
   };
   rd.readAsText(f); e.target.value = "";
-});
-
-document.getElementById("wipeBtn").addEventListener("click", function(){
-  if(!confirm("Delete all " + people.length + " people? Download a backup first if you might need them.")) return;
-  people = []; persist(); toast("Roster cleared.");
 });
 
 ["q","fShift","fStatus"].forEach(function(id){
