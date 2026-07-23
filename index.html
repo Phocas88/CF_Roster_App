@@ -117,23 +117,25 @@ th.sortable[aria-sort]{color:var(--navy)}
 .shift-block:last-child{break-after:auto;page-break-after:auto}
 .shift-bar{background:var(--ink);color:#fff;padding:5px 9px;font-family:var(--stencil);font-size:11pt;font-weight:800;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:baseline}
 .shift-bar span{font-family:var(--ui);font-size:8pt;font-weight:400;letter-spacing:.02em}
-/* grid: lines run BOTH ways — vertical between the two columns, horizontal between rows */
-.grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--ink);border-left:1px solid var(--ink)}
-.card{border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);padding:9px 11px 11px;break-inside:avoid;page-break-inside:avoid}
+/* grid: lines run BOTH ways — vertical between columns, horizontal between rows */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(2.4in,1fr));
+      border-top:1px solid var(--ink);border-left:1px solid var(--ink)}
+.card{border-right:1px solid var(--ink);border-bottom:1px solid var(--ink);
+      padding:8px 10px 10px;break-inside:avoid;page-break-inside:avoid}
+.card.wide{grid-column:span 2}
 .card-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.card-name{font-size:11.5pt;font-weight:700;letter-spacing:.01em}
-.card-meta{font-size:7.5pt;color:#555;margin:1px 0 7px}
-.bc{margin-bottom:6px}
+.card-name{font-size:10.5pt;font-weight:700;letter-spacing:.01em}
+.card-meta{font-size:7.5pt;color:#555;margin:1px 0 6px}
 .bc svg{display:block;shape-rendering:crispEdges;max-width:100%}
-.bc .cap{font-family:var(--mono);font-size:8pt;margin-top:2px;letter-spacing:.02em}
-.card-note{color:var(--danger);font-size:7pt;font-style:italic;margin-top:2px}
+.bc .cap{font-family:var(--mono);font-size:9pt;font-weight:700;margin-top:3px;letter-spacing:.03em}
+.card-note{color:var(--danger);font-size:7pt;font-style:italic;margin-top:3px}
 
 @media print{
   @page{size:letter portrait;margin:.4in}
   body{background:#fff}
   body>header,body>.tape,.wrap{display:none !important}
   #sheet{display:block !important}
-  .badge{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .badge,.ovr{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .shift-bar{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 @media (max-width:640px){
@@ -175,9 +177,9 @@ th.sortable[aria-sort]{color:var(--navy)}
         <button class="btn" id="saveBtn">Add associate</button>
         <button class="btn ghost" id="cancelBtn" style="display:none">Cancel</button>
       </div>
-      <div class="preview" id="preview"><span class="empty">Barcode values appear here as you type.</span></div>
+      <div class="preview" id="preview"><span class="empty">Barcode appears here as you type.</span></div>
       <p class="note">Fill in <b>System barcode</b> only when the warehouse system already holds a code that
-        doesn't match the name &mdash; it replaces the third barcode so scans still match.</p>
+        doesn't match the name &mdash; it replaces the generated barcode so scans still match.</p>
     </div>
   </section>
 
@@ -219,7 +221,7 @@ th.sortable[aria-sort]{color:var(--navy)}
           <th class="sortable hide-sm" data-sort="position">Job title</th>
           <th class="sortable" data-sort="status">Status</th>
           <th class="sortable shiftcell" data-sort="shift">Shift</th>
-          <th class="hide-sm">Barcode values</th><th></th>
+          <th class="hide-sm">Barcode</th><th></th>
         </tr></thead>
         <tbody id="tbody"></tbody>
       </table></div>
@@ -589,7 +591,7 @@ function refresh(){
       '<td class="hide-sm">'+esc(r.position)+'</td>'+
       '<td><span class="badge '+statusClass(r.status)+'">'+esc(r.status)+'</span></td>'+
       '<td class="shiftcell">'+r.shift+'</td>'+
-      '<td class="codes hide-sm">'+esc(r.proper)+' · '+esc(r.upper)+' · '+esc(r.short)+
+      '<td class="codes hide-sm">'+esc(r.short)+
         (r.custom ? '<span class="ovr">SYSTEM</span>' : '')+'</td>'+
       '<td><div class="row-actions">'+
         '<button class="btn ghost small" data-print="'+r.id+'">Print</button>'+
@@ -613,33 +615,35 @@ function updatePreview(){
       cu = squish(document.getElementById("f_custom").value);
   var el = document.getElementById("preview");
   if(!squish(f) && !squish(l) && !cu){
-    el.innerHTML = '<span class="empty">Barcode values appear here as you type.</span>';
+    el.innerHTML = '<span class="empty">Barcode appears here as you type.</span>';
     return;
   }
   var v = variants({first:f, last:l});
-  var third = cu
+  var code = cu
     ? esc(cu) + ' <span class="ovr">SYSTEM</span>' +
       (cu !== v.short ? ' <span style="color:var(--danger)">(name gives ' + esc(v.short) + ')</span>' : '')
     : esc(v.short);
-  el.innerHTML = '<span><b>1</b> '+esc(v.proper)+'</span>'+
-                 '<span><b>2</b> '+esc(v.upper)+'</span>'+
-                 '<span><b>3</b> '+third+'</span>';
+  el.innerHTML = '<span><b>name</b> '+esc(v.proper)+'</span>'+
+                 '<span><b>barcode</b> '+code+'</span>';
 }
 
 /* ============================================================
    5. PRINTING
    ============================================================ */
 var MODULE_IN = 0.013, BAR_H = 0.40;
+/* A 3-up card is ~2.37in of usable width. At a 10 mil module that holds a
+   16-character code. Anything longer spans two columns rather than being
+   scaled down, so bar width never quietly drops below scanning range. */
+var WIDE_AT = 16;
 
 function cardHTML(r){
-  return '<div class="card">'+
+  return '<div class="card'+(r.short.length > WIDE_AT ? ' wide' : '')+'">'+
     '<div class="card-head"><div class="card-name">'+esc(r.proper)+'</div>'+
     '<span class="badge '+statusClass(r.status)+'">'+esc(r.status)+'</span></div>'+
     '<div class="card-meta">'+esc(r.position)+' &middot; Shift '+r.shift+'</div>'+
-    [r.proper, r.upper, r.short].map(function(v){
-      return '<div class="bc">'+barcodeSVG(v, MODULE_IN, BAR_H)+
-             '<div class="cap">'+esc(v)+'</div></div>';
-    }).join("")+
+    '<div class="bc">'+barcodeSVG(r.short, MODULE_IN, BAR_H)+
+      '<div class="cap">'+esc(r.short)+(r.custom ? ' <span class="ovr">SYSTEM</span>' : '')+'</div>'+
+    '</div>'+
     (r.note ? '<div class="card-note">! '+esc(r.note)+'</div>' : '')+
   '</div>';
 }
