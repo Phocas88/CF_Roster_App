@@ -274,7 +274,12 @@ tr.picked:hover{background:#E6EDF9}
         <tbody id="tbody"></tbody>
       </table></div>
       <div class="empty-state" id="emptyState" style="display:none">
-        No one matches those filters. Clear the search, or add someone above.
+        <div id="emptyFresh">
+          <p style="font-size:15px;color:var(--ink);margin:0 0 4px"><b>No associates yet.</b></p>
+          <p style="margin:0">Add people with the panel above &mdash; one at a time, or paste a
+          list under <b>Several</b>. Everything stays on this computer.</p>
+        </div>
+        <div id="emptyFiltered" style="display:none">No one matches those filters. Clear the search, or add someone above.</div>
       </div>
     </div>
   </section>
@@ -504,7 +509,7 @@ window.addEventListener("beforeunload", function(e){
   if(!storageOK && dirty){ e.preventDefault(); e.returnValue = ""; }
 });
 
-var SEED = [{"id":1,"first":"Albert","last":"Davis","position":"Receiver","status":"Permanent","shift":1,"custom":""},{"id":2,"first":"Alfred","last":"Payton","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":3,"first":"Ant","last":"Cherry","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":4,"first":"Armando","last":"Delacruz","position":"Turret Operator","status":"Permanent","shift":1,"custom":""},{"id":5,"first":"Armane","last":"Brooks","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":6,"first":"Arrid","last":"Tillery","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":7,"first":"Betty","last":"Whitby","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":8,"first":"Brandon","last":"Parson","position":"Inventory","status":"PSS","shift":1,"custom":""},{"id":9,"first":"Brian","last":"Christian","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":10,"first":"Calvin","last":"Crittle","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":11,"first":"Charlse","last":"Murrell","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":12,"first":"Chris","last":"Boswell","position":"Inventory","status":"PSS","shift":1,"custom":""},{"id":13,"first":"Clifton","last":"Artis","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":14,"first":"Colonious","last":"Gwaltney","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":15,"first":"Curtis","last":"Davis","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":16,"first":"Daquan","last":"Royal","position":"Inventory","status":"Permanent","shift":1,"custom":""},{"id":17,"first":"David","last":"Alston","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":18,"first":"Deandre","last":"Langford","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":19,"first":"Dennis","last":"Delacruz","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":20,"first":"Donavan","last":"Edwards","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":21,"first":"Emmette","last":"Kelley","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":22,"first":"Enrique","last":"Baysa","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":23,"first":"Evan","last":"Moore","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":24,"first":"Helen","last":"Meredith-Boyd","position":"Clerical","status":"Permanent","shift":1,"custom":""},{"id":25,"first":"Ian","last":"McAden","position":"Inventory","status":"Permanent","shift":1,"custom":""},{"id":26,"first":"Jason","last":"Linwood","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":27,"first":"Jeramie","last":"Cary","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":28,"first":"Jesusa","last":"Valdez","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":29,"first":"Joselito","last":"Robles","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":30,"first":"Kevin","last":"Hill","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":31,"first":"Kris","last":"Greenhow","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":32,"first":"Laquin","last":"Cutchin","position":"Turret Operator","status":"Lee Group","shift":1,"custom":""},{"id":33,"first":"Latisha","last":"Green","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":34,"first":"Latrell","last":"Harris","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":35,"first":"Leslie","last":"Brown","position":"Receiver","status":"Permanent","shift":1,"custom":""},{"id":36,"first":"Luella","last":"Beulah","position":"Housekeeping","status":"Permanent","shift":1,"custom":""},{"id":37,"first":"Luis","last":"Ocasiorodriguez","position":"Receiver","status":"Lee Group","shift":1,"custom":""},{"id":38,"first":"Marco","last":"Gonzalez","position":"Turret Operator","status":"PSS","shift":1,"custom":""},{"id":39,"first":"Marquis","last":"Walker","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":40,"first":"Michael","last":"Simon","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":41,"first":"Mike","last":"Dargan","position":"Receiver","status":"Permanent","shift":1,"custom":""},{"id":42,"first":"Noah","last":"Lewis","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":43,"first":"Omarsharee","last":"Holley","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":44,"first":"Ramon","last":"Joyner","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":45,"first":"Ramon","last":"Knightnor","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":46,"first":"Raymond","last":"Alston","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":47,"first":"Raymond","last":"Bryant","position":"Turret Operator","status":"Lee Group","shift":1,"custom":""},{"id":48,"first":"Rogelio","last":"Valdez","position":"Shipping","status":"Permanent","shift":1,"custom":""},{"id":49,"first":"Ruth","last":"Yanagisawa","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":50,"first":"Timothy","last":"Anderson","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":51,"first":"William","last":"Cooke","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":52,"first":"William","last":"Sellers","position":"Inventory","status":"Permanent","shift":1,"custom":""},{"id":53,"first":"Basel","last":"Zeytun","position":"Picker","status":"PSS","shift":2,"custom":""},{"id":54,"first":"Beulah","last":"Odon","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":55,"first":"Danilo","last":"Lagatuz","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":56,"first":"Deshawn","last":"Freeman","position":"Picker","status":"PSS","shift":2,"custom":""},{"id":57,"first":"Hamza","last":"Zayegh","position":"Picker","status":"PSS","shift":2,"custom":""},{"id":58,"first":"Jonathan","last":"Delacruz","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":59,"first":"Kevin","last":"Roberts","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":60,"first":"Leander","last":"Williams","position":"Picker","status":"Lee Group","shift":2,"custom":""},{"id":61,"first":"Moe","last":"Burford","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":62,"first":"Randall","last":"Coy","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":63,"first":"Timothy","last":"Perry","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":64,"first":"Trevon","last":"Croker","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":65,"first":"Wilfredo","last":"Delacruz","position":"Picker","status":"Permanent","shift":2,"custom":""}];
+var SEED = [];
 
 var people = readStore();
 if(!people){ people = SEED.slice(); writeStore(people); }
@@ -662,6 +667,11 @@ function refresh(){
       '</div></td></tr>';
   }).join("");
   document.getElementById("emptyState").style.display = view.length ? "none" : "block";
+  if(!view.length){
+    var fresh = rows.length === 0;
+    document.getElementById("emptyFresh").style.display = fresh ? "" : "none";
+    document.getElementById("emptyFiltered").style.display = fresh ? "none" : "";
+  }
   updateBulkPreview();
 }
 
@@ -679,265 +689,6 @@ function barcodeSVG(text, moduleIn, heightIn){
   return '<svg width="'+w+'in" height="'+h+'in" viewBox="0 0 '+total+' 10" '+
          'preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" role="img" '+
          'aria-label="barcode '+esc(text)+'"><g fill="#000">'+rects+'</g></svg>';
-}
-
-/* ============================================================
-   2. NAME RULES  (identical to the printed sheets)
-   - suffixes Jr/Sr/II/III/IV are dropped
-   - a multi-word surname glues into one word: Dela Cruz -> Delacruz
-   - short code is all lowercase: initial + surname
-   ============================================================ */
-var SUFFIX = {jr:1, sr:1, ii:1, iii:1, iv:1};
-
-function squish(s){ return String(s==null?"":s).replace(/\s+/g," ").trim(); }
-function esc(s){ return String(s).replace(/[&<>"]/g,function(c){
-  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
-
-function capWord(w){
-  if(!w) return "";
-  if(w.indexOf("-") > -1) return w.split("-").map(capWord).join("-");
-  if(w.indexOf("'") > -1){
-    var p = w.split("'");
-    return capWord(p[0]) + "'" + p.slice(1).map(function(x){
-      return x.charAt(0).toUpperCase() + x.slice(1).toLowerCase(); }).join("'");
-  }
-  var lw = w.toLowerCase();
-  if(/^mc[a-z]{2,}$/.test(lw)) return "Mc" + lw.charAt(2).toUpperCase() + lw.slice(3);
-  return lw.charAt(0).toUpperCase() + lw.slice(1);
-}
-
-function firstOf(raw){
-  return squish(raw).split(" ").map(capWord).join(" ");
-}
-
-function surnameOf(raw){
-  var words = squish(raw).split(" ").filter(Boolean);
-  while(words.length > 1 && SUFFIX[words[words.length-1].toLowerCase().replace(/\./g,"")]) words.pop();
-  if(!words.length) return "";
-  if(words.length === 1) return capWord(words[0]);
-  var glued = words.map(function(w){
-    return w.replace(/[^A-Za-z'-]/g,"").toLowerCase(); }).join("");
-  return glued.charAt(0).toUpperCase() + glued.slice(1);
-}
-
-function letters(s){ return String(s).replace(/[^A-Za-z]/g,""); }
-
-/* Build the three variants for one person (before collision fixing). */
-function variants(p){
-  var f = firstOf(p.first), s = surnameOf(p.last);
-  var proper = squish(f + " " + s);
-  return {
-    proper: proper,
-    upper: proper.toUpperCase(),
-    short: (letters(f).charAt(0) + letters(s)).toLowerCase(),
-    _f: letters(f).toLowerCase(), _s: letters(s).toLowerCase()
-  };
-}
-
-/* Short codes must be unique across the WHOLE roster, not per sheet.
-   A custom system barcode is authoritative: it is never rewritten, because
-   the warehouse system already holds that exact value. Generated codes move
-   out of its way instead. */
-function computeAll(list){
-  var out = list.map(function(p){
-    var v = variants(p);
-    var custom = squish(p.custom);
-    return {id:p.id, first:p.first, last:p.last, custom:custom,
-            position:squish(p.position)||"Unassigned",
-            status:squish(p.status)||"Permanent", shift:String(p.shift)==="2"?2:1,
-            proper:v.proper, upper:v.upper,
-            generated:v.short, short: custom || v.short,
-            overridden: !!custom && custom !== v.short,
-            note:"", _f:v._f, _s:v._s};
-  });
-
-  // 1. customs claim their value first
-  var claimed = {};
-  out.forEach(function(r){
-    if(!r.custom) return;
-    var k = r.short.toLowerCase();
-    claimed[k] = (claimed[k] || 0) + 1;
-  });
-  out.forEach(function(r){
-    if(r.custom && claimed[r.short.toLowerCase()] > 1)
-      r.note = "Two people share this barcode — check which one is right";
-  });
-
-  // 2. generated codes that clash (with each other or with a custom) expand
-  var gen = {};
-  out.forEach(function(r){ if(!r.custom) (gen[r.short] = gen[r.short] || []).push(r); });
-  Object.keys(gen).forEach(function(k){
-    var grp = gen[k];
-    if(grp.length < 2 && !claimed[k.toLowerCase()]) return;
-    grp.forEach(function(r){
-      r.short = r._f + r._s;
-      r.note = "Short code expanded — shares an initial and surname";
-    });
-  });
-
-  // 3. final sweep: guarantee every generated code is unique
-  var seen = {};
-  out.forEach(function(r){ if(r.custom) seen[r.short.toLowerCase()] = true; });
-  out.forEach(function(r){
-    if(r.custom) return;
-    var base = r.short, k = base.toLowerCase(), n = 1;
-    while(seen[k]){ n++; k = (base + n).toLowerCase(); }
-    if(n > 1){
-      r.short = base + n;
-      r.note = "Duplicate name on the roster — verify this is a different person";
-    }
-    seen[k] = true;
-  });
-
-  out.forEach(function(r){
-    if(r.overridden && !r.note)
-      r.note = "Custom barcode — the name would give " + r.generated;
-    delete r._f; delete r._s;
-  });
-  return out;
-}
-
-/* ============================================================
-   3. STORAGE — localStorage with an in-memory fallback
-   ============================================================ */
-var KEY = "cf_roster_v2";
-var memory = null, storageOK = false, storageProblem = "blocked", dirty = false;
-
-/* Probe with a payload the size of a real roster, and read it back.
-   A 1-byte test passes in sandboxes that then reject anything useful. */
-function probeStorage(){
-  var t = "__cf_probe__", pad = new Array(2049).join("x");   // ~2 KB
-  try{
-    if(typeof localStorage === "undefined" || !localStorage){ storageProblem = "blocked"; return false; }
-    localStorage.setItem(t, pad);
-    var ok = localStorage.getItem(t) === pad;
-    localStorage.removeItem(t);
-    if(!ok){ storageProblem = "blocked"; return false; }
-    return true;
-  }catch(e){
-    var hasData = false;
-    try{ hasData = localStorage.length > 0; }catch(e2){}
-    storageProblem = (e && e.name === "QuotaExceededError" && hasData) ? "full" : "blocked";
-    try{ localStorage.removeItem(t); }catch(e3){}
-    return false;
-  }
-}
-storageOK = probeStorage();
-
-function readStore(){
-  if(!storageOK) return memory;
-  try{ var raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : null; }
-  catch(e){ return null; }
-}
-function writeStore(list){
-  if(storageOK){
-    try{ localStorage.setItem(KEY, JSON.stringify(list)); memory = null; return true; }
-    catch(e){ storageOK = false; storageProblem = "full"; }
-  }
-  memory = list;
-  renderStorageBanner();
-  return false;
-}
-
-function renderStorageBanner(){
-  var el = document.getElementById("storagewarn");
-  if(!el) return;
-  if(storageOK){ el.style.display = "none"; return; }
-  el.style.display = "block";
-  el.innerHTML = (storageProblem === "full"
-    ? "<b>This browser is out of storage space.</b> The roster still works, but changes won't survive a refresh. " +
-      "Clear some site data, or keep working and save a backup."
-    : "<b>This browser won't let the page save.</b> Everything works, but the roster resets when the tab closes. " +
-      "That's normal in a preview pane, a private window, or when the file is opened from inside a zip &mdash; " +
-      "save this file to your computer and open it directly to keep changes."
-  ) + ' <button class="btn small" id="bannerBackup" style="margin-left:8px">Download backup</button>';
-  var b = document.getElementById("bannerBackup");
-  if(b) b.addEventListener("click", downloadBackup);
-}
-renderStorageBanner();
-
-window.addEventListener("beforeunload", function(e){
-  if(!storageOK && dirty){ e.preventDefault(); e.returnValue = ""; }
-});
-
-var SEED = [{"id":1,"first":"Albert","last":"Davis","position":"Receiver","status":"Permanent","shift":1,"custom":""},{"id":2,"first":"Alfred","last":"Payton","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":3,"first":"Ant","last":"Cherry","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":4,"first":"Armando","last":"Delacruz","position":"Turret Operator","status":"Permanent","shift":1,"custom":""},{"id":5,"first":"Armane","last":"Brooks","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":6,"first":"Arrid","last":"Tillery","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":7,"first":"Betty","last":"Whitby","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":8,"first":"Brandon","last":"Parson","position":"Inventory","status":"PSS","shift":1,"custom":""},{"id":9,"first":"Brian","last":"Christian","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":10,"first":"Calvin","last":"Crittle","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":11,"first":"Charlse","last":"Murrell","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":12,"first":"Chris","last":"Boswell","position":"Inventory","status":"PSS","shift":1,"custom":""},{"id":13,"first":"Clifton","last":"Artis","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":14,"first":"Colonious","last":"Gwaltney","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":15,"first":"Curtis","last":"Davis","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":16,"first":"Daquan","last":"Royal","position":"Inventory","status":"Permanent","shift":1,"custom":""},{"id":17,"first":"David","last":"Alston","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":18,"first":"Deandre","last":"Langford","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":19,"first":"Dennis","last":"Delacruz","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":20,"first":"Donavan","last":"Edwards","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":21,"first":"Emmette","last":"Kelley","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":22,"first":"Enrique","last":"Baysa","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":23,"first":"Evan","last":"Moore","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":24,"first":"Helen","last":"Meredith-Boyd","position":"Clerical","status":"Permanent","shift":1,"custom":""},{"id":25,"first":"Ian","last":"McAden","position":"Inventory","status":"Permanent","shift":1,"custom":""},{"id":26,"first":"Jason","last":"Linwood","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":27,"first":"Jeramie","last":"Cary","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":28,"first":"Jesusa","last":"Valdez","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":29,"first":"Joselito","last":"Robles","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":30,"first":"Kevin","last":"Hill","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":31,"first":"Kris","last":"Greenhow","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":32,"first":"Laquin","last":"Cutchin","position":"Turret Operator","status":"Lee Group","shift":1,"custom":""},{"id":33,"first":"Latisha","last":"Green","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":34,"first":"Latrell","last":"Harris","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":35,"first":"Leslie","last":"Brown","position":"Receiver","status":"Permanent","shift":1,"custom":""},{"id":36,"first":"Luella","last":"Beulah","position":"Housekeeping","status":"Permanent","shift":1,"custom":""},{"id":37,"first":"Luis","last":"Ocasiorodriguez","position":"Receiver","status":"Lee Group","shift":1,"custom":""},{"id":38,"first":"Marco","last":"Gonzalez","position":"Turret Operator","status":"PSS","shift":1,"custom":""},{"id":39,"first":"Marquis","last":"Walker","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":40,"first":"Michael","last":"Simon","position":"Picker","status":"PSS","shift":1,"custom":""},{"id":41,"first":"Mike","last":"Dargan","position":"Receiver","status":"Permanent","shift":1,"custom":""},{"id":42,"first":"Noah","last":"Lewis","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":43,"first":"Omarsharee","last":"Holley","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":44,"first":"Ramon","last":"Joyner","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":45,"first":"Ramon","last":"Knightnor","position":"Picker","status":"Lee Group","shift":1,"custom":""},{"id":46,"first":"Raymond","last":"Alston","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":47,"first":"Raymond","last":"Bryant","position":"Turret Operator","status":"Lee Group","shift":1,"custom":""},{"id":48,"first":"Rogelio","last":"Valdez","position":"Shipping","status":"Permanent","shift":1,"custom":""},{"id":49,"first":"Ruth","last":"Yanagisawa","position":"Key Account Packer","status":"Permanent","shift":1,"custom":""},{"id":50,"first":"Timothy","last":"Anderson","position":"Picker","status":"Integrity","shift":1,"custom":""},{"id":51,"first":"William","last":"Cooke","position":"Picker","status":"Permanent","shift":1,"custom":""},{"id":52,"first":"William","last":"Sellers","position":"Inventory","status":"Permanent","shift":1,"custom":""},{"id":53,"first":"Basel","last":"Zeytun","position":"Picker","status":"PSS","shift":2,"custom":""},{"id":54,"first":"Beulah","last":"Odon","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":55,"first":"Danilo","last":"Lagatuz","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":56,"first":"Deshawn","last":"Freeman","position":"Picker","status":"PSS","shift":2,"custom":""},{"id":57,"first":"Hamza","last":"Zayegh","position":"Picker","status":"PSS","shift":2,"custom":""},{"id":58,"first":"Jonathan","last":"Delacruz","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":59,"first":"Kevin","last":"Roberts","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":60,"first":"Leander","last":"Williams","position":"Picker","status":"Lee Group","shift":2,"custom":""},{"id":61,"first":"Moe","last":"Burford","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":62,"first":"Randall","last":"Coy","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":63,"first":"Timothy","last":"Perry","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":64,"first":"Trevon","last":"Croker","position":"Picker","status":"Permanent","shift":2,"custom":""},{"id":65,"first":"Wilfredo","last":"Delacruz","position":"Picker","status":"Permanent","shift":2,"custom":""}];
-
-var people = readStore();
-if(!people){ people = SEED.slice(); writeStore(people); }
-
-var rows = [];      // computed view of `people`
-var editingId = null;
-
-function nextId(){
-  var m = 0; people.forEach(function(p){ if(+p.id > m) m = +p.id; }); return m + 1;
-}
-function persist(){ writeStore(people); if(!storageOK) dirty = true; refresh(); }
-
-/* ============================================================
-   4. RENDER
-   ============================================================ */
-function statusClass(s){
-  var k = squish(s).toLowerCase();
-  if(k === "permanent") return "b-permanent";
-  if(k === "integrity") return "b-integrity";
-  if(k === "pss") return "b-pss";
-  if(k === "lee group") return "b-lee";
-  return "b-other";
-}
-function sortRows(a,b){
-  return a.shift - b.shift || a.proper.toLowerCase().localeCompare(b.proper.toLowerCase());
-}
-
-/* Table sort is a viewing aid. Printing always groups by shift, then name,
-   so a sheet looks the same however the screen happens to be sorted. */
-var sortKey = "shift", sortDir = 1;
-var selectedPos = [];        // empty === every job title
-
-function applySort(list){
-  var k = sortKey, d = sortDir;
-  return list.slice().sort(function(a,b){
-    var r = 0;
-    if(k === "shift") r = a.shift - b.shift;
-    else r = String(a[k]).toLowerCase().localeCompare(String(b[k]).toLowerCase());
-    if(r) return r * d;
-    return a.proper.toLowerCase().localeCompare(b.proper.toLowerCase());   // stable tie-break
-  });
-}
-
-function matches(r, ignorePos){
-  var q = squish(document.getElementById("q").value).toLowerCase();
-  var sh = document.getElementById("fShift").value;
-  var stv = document.getElementById("fStatus").value;
-  if(sh && String(r.shift) !== sh) return false;
-  if(stv && r.status !== stv) return false;
-  if(!ignorePos && selectedPos.length && selectedPos.indexOf(r.position) < 0) return false;
-  if(q && r.proper.toLowerCase().indexOf(q) < 0 && r.short.toLowerCase().indexOf(q) < 0) return false;
-  return true;
-}
-function filtered(){ return rows.filter(function(r){ return matches(r, false); }); }
-
-/* Chip counts ignore the job-title filter itself, so each number is
-   "how many you'd add by ticking this", not "how many are ticked". */
-function renderPosChips(positions){
-  var pool = rows.filter(function(r){ return matches(r, true); });
-  var counts = {};
-  pool.forEach(function(r){ counts[r.position] = (counts[r.position] || 0) + 1; });
-  var all = selectedPos.length === 0;
-  document.getElementById("posChips").innerHTML =
-    '<button type="button" class="chip all" data-pos="" aria-pressed="'+all+'">All job titles'+
-      '<span class="n">'+pool.length+'</span></button>' +
-    positions.map(function(p){
-      var on = selectedPos.indexOf(p) > -1, n = counts[p] || 0;
-      return '<button type="button" class="chip'+(n?'':' zero')+'" data-pos="'+esc(p)+'" '+
-             'aria-pressed="'+on+'">'+esc(p)+'<span class="n">'+n+'</span></button>';
-    }).join("");
-}
-
-function fillSelect(el, values, allLabel){
-  var keep = el.value;
-  el.innerHTML = '<option value="">' + allLabel + '</option>' +
-    values.map(function(v){ return '<option value="'+esc(v)+'">'+esc(v)+'</option>'; }).join("");
-  el.value = values.indexOf(keep) > -1 ? keep : "";
 }
 
 
@@ -1450,6 +1201,7 @@ document.getElementById("f_last").addEventListener("keydown", function(e){
 
 refresh();
 updatePreview();
+if(people.length === 0) setMode(true);   // fresh site: start on the paste-a-list tab
 </script>
 </body>
 </html>
